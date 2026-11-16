@@ -124,10 +124,16 @@ def body_html(post: dict) -> str:
     return "\n".join(out)
 
 
+def meta_label(post: dict) -> str:
+    """'№ 02 · 16-noyabr, 2026' yoki raqamsiz postlar uchun faqat sana."""
+    d = uz_date(post["date"])
+    return f"№ {post['number']:02d} · {d}" if post["number"] else d
+
+
 def card_html(post: dict, root: str) -> str:
     return render(tpl("card.html"), root=root, slug=post["slug"],
                   title=html.escape(post["title"]), excerpt=html.escape(post["excerpt"]),
-                  date=uz_date(post["date"]), number=f"{post['number']:02d}")
+                  meta=meta_label(post))
 
 
 def page(layout: str, site: dict, root: str, path: str, title: str, description: str,
@@ -198,7 +204,7 @@ def build_site(all_posts: bool = False) -> None:
             nav += f'<a class="pn pn-next" href="../{p["newer"]["slug"]}/"><small>Keyingi</small>{html.escape(p["newer"]["title"])}</a>'
         url = f"{base}/maqolalar/{p['slug']}/"
         art = render(tpl("article.html"), title=html.escape(p["title"]), quote=html.escape(p["quote"]),
-                     date=uz_date(p["date"]), number=f"{p['number']:02d}", body=body_html(p),
+                     meta=meta_label(p), body=body_html(p),
                      tags=" ".join(f'<span>{html.escape(t)}</span>' for t in p["tags"]),
                      slug=p["slug"], url=html.escape(url), url_q=html.escape(url, quote=True),
                      tg_share=f"https://t.me/share/url?url={url}&text={html.escape(p['title'])}",

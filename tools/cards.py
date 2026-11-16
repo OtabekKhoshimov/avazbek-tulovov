@@ -117,9 +117,10 @@ def make_card(post: dict, site: dict, out_path: str) -> None:
         x = M + 84 + 24
     d.text((x, M - 4), site["name"], font=font("Inter.ttf", 30, 650), fill=CREAM)
     d.text((x, M + 36), site["role"], font=font("Inter.ttf", 21, 450), fill=MUTED)
-    num = f"№ {post['number']:02d}"
-    nf = font("Inter.ttf", 26, 600)
-    d.text((W - M - nf.getlength(num), M + 4), num, font=nf, fill=GOLD)
+    if post["number"]:
+        num = f"№ {post['number']:02d}"
+        nf = font("Inter.ttf", 26, 600)
+        d.text((W - M - nf.getlength(num), M + 4), num, font=nf, fill=GOLD)
 
     # --- sarlavha va iqtibos
     width = W - 2 * M
