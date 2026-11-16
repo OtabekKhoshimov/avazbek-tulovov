@@ -1,0 +1,53 @@
+# Har kuni ertalab navbatdagi maqolani saytga, Telegram kanalga va (sozlangan bo'lsa) Facebook sahifaga joylaydi.
+#
+# Kerakli sozlamalar (GitHub → Settings → Secrets and variables → Actions):
+#   secret   TELEGRAM_BOT_TOKEN  — @BotFather bergan token (bot kanalda admin bo'lishi kerak)
+#   variable TELEGRAM_CHAT_ID    — kanal manzili, masalan @avazbek_tulovov
+#   variable FB_PAGE_ID          — ixtiyoriy, Facebook sahifa ID'si
+#   secret   FB_PAGE_TOKEN       — ixtiyoriy, Facebook sahifa tokeni
+name: Kunlik nashr
+
+on:
+  schedule:
+    - cron: "0 4 * * *"      # 09:00 Toshkent vaqti (UTC+5). GitHub ba'zan 10–30 daqiqa kechiktiradi.
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "Aynan shu maqolani hozir joylash — raqami (13) yoki papka nomi. Bo'sh qoldirilsa navbatdagisi."
+        required: false
+        default: ""
+      dry_run:
+        description: "Sinov: hech narsa yuborilmaydi, faqat log"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nashr
+  cancel-in-progress: false
+
+jobs:
+  nashr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet pillow
+      - name: Git sozlash
+        run: |
+          git config user.name "sayt-bot"
+          git config user.email "sayt-bot@users.noreply.github.com"
+      - name: Nashr qilish
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
+          FB_PAGE_ID: ${{ vars.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          FORCE_SLUG: ${{ inputs.slug }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          PUSH: "1"
+        run: python3 tools/publish.py

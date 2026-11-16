@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <meta name="description" content="{{description}}">
+  <link rel="canonical" href="{{canonical}}">
+  <meta property="og:title" content="{{title}}">
+  <meta property="og:description" content="{{description}}">
+  <meta property="og:image" content="{{image}}">
+  <meta property="og:url" content="{{canonical}}">
+  <meta property="og:site_name" content="{{site_name}}">
+  <meta property="og:locale" content="uz_UZ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0e2845">
+  <link rel="icon" href="{{root}}favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{root}}assets/style.css?v=1">
+  {{extra_head}}
+</head>
+<body class="{{body_class}}">
+  <header class="site-header" id="top">
+    <div class="wrap header-inner">
+      <a class="brand" href="{{root}}"><span class="brand-mark">AT</span><span class="brand-name">{{site_name}}</span></a>
+      <nav class="nav" id="nav">
+        <a href="{{root}}#haqida">Men haqimda</a>
+        <a href="{{root}}#yol">Yo‘l</a>
+        <a href="{{root}}maqolalar/">Maqolalar</a>
+        <a href="{{root}}#aloqa">Aloqa</a>
+        <a class="nav-cta" href="https://t.me/{{channel}}" target="_blank" rel="noopener">Telegram kanal</a>
+      </nav>
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="Menyu" aria-expanded="false"><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main>
+{{content}}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div>
+        <a class="brand" href="{{root}}"><span class="brand-mark">AT</span><span class="brand-name">{{site_name}}</span></a>
+        <p class="muted small">{{role}}</p>
+      </div>
+      <nav class="footer-links">
+        <a href="https://t.me/{{channel}}" target="_blank" rel="noopener">Telegram kanal</a>
+        <a href="https://t.me/{{contact}}" target="_blank" rel="noopener">Bog‘lanish</a>
+        {{facebook_link}}
+        <a href="{{root}}maqolalar/">Maqolalar</a>
+      </nav>
+      <p class="copy muted small">© {{year}} {{site_name}}. Barcha huquqlar himoyalangan.</p>
+    </div>
+  </footer>
+  <script src="{{root}}assets/script.js?v=1" defer></script>
+</body>
+</html>

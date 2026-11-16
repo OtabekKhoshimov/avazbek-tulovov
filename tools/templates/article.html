@@ -1,0 +1,32 @@
+    <article class="article">
+      <header class="article-head">
+        <div class="wrap-narrow">
+          <p class="eyebrow"><a href="../">Maqolalar</a> · № {{number}} · {{date}}</p>
+          <h1>{{title}}</h1>
+          <p class="article-quote">«{{quote}}»</p>
+        </div>
+      </header>
+      <div class="wrap-narrow">
+        <figure class="article-figure">
+          <img src="../../assets/cards/{{slug}}.jpg" alt="{{title}}" width="1200" height="1200">
+        </figure>
+        <div class="article-body">
+{{body}}
+        </div>
+        <p class="tags">{{tags}}</p>
+        <div class="share">
+          <span>Ulashish:</span>
+          <a href="{{tg_share}}" target="_blank" rel="noopener">Telegram</a>
+          <a href="{{fb_share}}" target="_blank" rel="noopener">Facebook</a>
+          <button type="button" class="copy-link" data-url="{{url_q}}">Havolani nusxalash</button>
+        </div>
+        <div class="author-box">
+          <img src="../../assets/img/avatar.jpg" alt="" width="64" height="64">
+          <div>
+            <b>{{site_name}}</b>
+            <p>O‘qituvchi, Registon ta’lim loyihasi asoschisi. Yangi maqolalar har kuni <a href="https://t.me/{{channel}}" target="_blank" rel="noopener">@{{channel}}</a> kanalida.</p>
+          </div>
+        </div>
+        <nav class="prev-next">{{nav}}</nav>
+      </div>
+    </article>

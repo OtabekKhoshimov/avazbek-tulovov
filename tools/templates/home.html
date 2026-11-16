@@ -1,0 +1,100 @@
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-text">
+          <p class="eyebrow">{{role}}</p>
+          <h1>Avazbek<br>Tulovov</h1>
+          <p class="lead">2013-yilda ijara uydagi ikkita eski partadan boshlangan Registon bugun Toshkent va Buxoroda maktablar, o‘quv markazlari va yuz minglab o‘quvchilarga aylandi. Bu yerda ta’lim, rahbarlik, tarbiya va shu yo‘lda o‘rganganlarim haqida yozaman.</p>
+          <div class="hero-actions">
+            <a class="btn btn-gold" href="maqolalar/">Maqolalarni o‘qish</a>
+            <a class="btn btn-ghost" href="https://t.me/{{channel}}" target="_blank" rel="noopener">Telegram kanalga obuna</a>
+          </div>
+          <dl class="stats">
+            <div><dt>2013</dt><dd>Registon boshlangan yil</dd></div>
+            <div><dt>300 000+</dt><dd>o‘quvchi ta’lim olgan</dd></div>
+            <div><dt>2023</dt><dd>birinchi xususiy maktab</dd></div>
+          </dl>
+        </div>
+        <aside class="hero-card" aria-label="Maqsad">
+          <img class="hero-avatar" src="assets/img/avatar.jpg" alt="Avazbek Tulovov" width="96" height="96">
+          <p class="hero-quote">«O‘zbekiston ta’limini dunyoda birinchi o‘ringa olib chiqish!»</p>
+          <p class="hero-quote-src">Registon maktablari va o‘quv markazlarida yozilgan maqsad</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="haqida">
+      <div class="wrap about-grid">
+        <div>
+          <p class="eyebrow">Men haqimda</p>
+          <h2>Qishloq bolasidan Registon asoschisigacha</h2>
+          <p class="big">Samarqand viloyati Paxtachi tumanidagi oddiy qishloqda, dehqon oilasida ulg‘ayganman. Uyimizdagi kitob javoni va jadid bobolarimizning asarlari dunyoqarashimni shakllantirgan.</p>
+          <p>O‘zbekiston Milliy universitetining falsafa fakultetida tahsil olganman, keyin magistraturani tamomlaganman. 2011-yildan Toshkentda abituriyentlarga dars bera boshladim. 2013-yilda shogirdim bilan ijara uyda bir necha o‘quvchiga dars berishdan boshlangan ish «Registon» ta’lim loyihasiga aylandi.</p>
+          <p>Bugun Registon — Toshkent va Buxorodagi xususiy maktablar, o‘quv markazlari va 2026-yilda taqdim etilgan «Turkiston» loyihasi. Men esa hamon o‘zimni avvalo o‘qituvchi deb bilaman.</p>
+        </div>
+        <div class="values">
+          <h3>Nimaga ishonaman</h3>
+          <ul class="values-list">
+            <li><b>Natija</b><span>Ta’limning haqiqiy qiymati o‘tilgan darslar sonida emas, o‘quvchida yuz bergan o‘zgarishda.</span></li>
+            <li><b>Jamoa</b><span>Kuchli rahbarning eng katta yutug‘i — o‘zidan ham kuchli insonlarni bir maqsad atrofida birlashtira olishi.</span></li>
+            <li><b>Ishonch</b><span>Ota-onaning ishonchi reklama bilan emas, natija va mas’uliyat bilan qozoniladi.</span></li>
+            <li><b>Ilm</b><span>Bir zamonlar dunyo ilm izlab kelgan yurtga yana dunyo ilm izlab kelishini istayman.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="yol">
+      <div class="wrap">
+        <p class="eyebrow">Yo‘l</p>
+        <h2>Ikki eski partadan maktablargacha</h2>
+        <ol class="timeline">
+          <li><span class="tl-year">2013</span><div><b>Boshlanish</b><p>Toshkent, ijara uy. Yangiobod bozoridan ikkita eski parta. Ko‘chalarga qo‘lda yopishtirilgan e’lonlar va birinchi o‘quvchilar.</p></div></li>
+          <li><span class="tl-year">2015</span><div><b>1500 nafar o‘quvchi</b><p>Chilonzor filialida o‘quvchilar soni 1500 dan oshdi — o‘sha paytda Toshkentda mingdan ortiq o‘quvchili markazlar sanoqli edi.</p></div></li>
+          <li><span class="tl-year">2020</span><div><b>Sinov</b><p>Karantin. Xonalar bo‘shadi, majburiyatlar qoldi. Tashkilotning haqiqiy kuchi inqirozda bilinishini o‘rgatgan yil.</p></div></li>
+          <li><span class="tl-year">2023</span><div><b>Birinchi maktab</b><p>3-sentabr. Uch oy avval beton karkas bo‘lgan bino Toshkentdagi birinchi Registon xususiy maktabi sifatida ochildi.</p></div></li>
+          <li><span class="tl-year">Buxoro</span><div><b>Ilm shahrida maktab</b><p>Fitrat yashagan, madrasalari dunyoga dong taratgan shaharda Registon maktabi ochildi.</p></div></li>
+          <li><span class="tl-year">2026</span><div><b>«Turkiston»</b><p>Registonning o‘n yillik tajribasi asosida qurilgan yangi ta’lim loyihasi taqdim etildi.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="maqolalar">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Maqolalar</p>
+            <h2>Registon hikoyalari va fikrlar</h2>
+          </div>
+          <a class="btn btn-outline" href="maqolalar/">Barchasi ({{count}})</a>
+        </div>
+        <div class="cards">
+{{latest}}
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <div class="wrap cta-inner">
+        <div>
+          <p class="eyebrow eyebrow-light">Har kuni bitta hikoya</p>
+          <h2>Yangi maqolalar avval Telegram kanalda chiqadi</h2>
+          <p>Ta’lim, rahbarlik va tarbiya haqida qisqa, samimiy va tajribaga asoslangan fikrlar.</p>
+        </div>
+        <a class="btn btn-gold" href="https://t.me/{{channel}}" target="_blank" rel="noopener">@{{channel}} ga obuna bo‘lish</a>
+      </div>
+    </section>
+
+    <section class="section" id="aloqa">
+      <div class="wrap contact-grid">
+        <div>
+          <p class="eyebrow">Aloqa</p>
+          <h2>Bog‘lanish</h2>
+          <p class="big">Hamkorlik, taklif yoki savollar uchun Telegram orqali yozing.</p>
+        </div>
+        <div class="contact-actions">
+          <a class="btn btn-navy" href="https://t.me/{{contact}}" target="_blank" rel="noopener">Telegram: @{{contact}}</a>
+          <a class="btn btn-outline" href="https://t.me/{{channel}}" target="_blank" rel="noopener">Kanal: @{{channel}}</a>
+          {{facebook_btn}}
+        </div>
+      </div>
+    </section>

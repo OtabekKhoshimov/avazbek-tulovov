@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://otabekkhoshimov.github.io/avazbek-tulovov/sitemap.xml

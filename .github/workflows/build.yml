@@ -1,0 +1,45 @@
+# Maqola matni, shablon yoki sozlamalar o'zgarganda saytni qayta quradi va yetishmayotgan kartalarni yasaydi.
+name: Saytni qayta qurish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "posts/**"
+      - "tools/**"
+      - "data/site.json"
+  workflow_dispatch:
+    inputs:
+      force_cards:
+        description: "Barcha kartalarni qayta yasash (masalan, domen o'zgarganda)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nashr
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet pillow
+      - name: Kartalar va sayt
+        run: |
+          python3 tools/cards.py ${{ inputs.force_cards && '--force' || '' }}
+          python3 tools/build.py
+      - name: Saqlash
+        run: |
+          git config user.name "sayt-bot"
+          git config user.email "sayt-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "O'zgarish yo'q"; exit 0; fi
+          git commit -m "Sayt qayta qurildi"
+          git push
