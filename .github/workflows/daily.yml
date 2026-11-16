@@ -3,13 +3,15 @@
 # Kerakli sozlamalar (GitHub → Settings → Secrets and variables → Actions):
 #   secret   TELEGRAM_BOT_TOKEN  — @BotFather bergan token (bot kanalda admin bo'lishi kerak)
 #   variable TELEGRAM_CHAT_ID    — kanal manzili, masalan @avazbek_tulovov
+#   variable REVIEW_GROUP_ID     — ixtiyoriy, nazorat guruhi ID'si (kechqurun namuna, ertalab xabar)
 #   variable FB_PAGE_ID          — ixtiyoriy, Facebook sahifa ID'si
 #   secret   FB_PAGE_TOKEN       — ixtiyoriy, Facebook sahifa tokeni
 name: Kunlik nashr
 
 on:
   schedule:
-    - cron: "0 4 * * *"      # 09:00 Toshkent vaqti (UTC+5). GitHub ba'zan 10–30 daqiqa kechiktiradi.
+    - cron: "0 4 * * *"      # 09:00 Toshkent vaqti (UTC+5): kanalga nashr. GitHub ba'zan 10–30 daqiqa kechiktiradi.
+    - cron: "0 13 * * *"     # 18:00 Toshkent: ertangi postning namunasi nazorat guruhiga
   workflow_dispatch:
     inputs:
       slug:
@@ -22,6 +24,10 @@ on:
         default: false
       check:
         description: "Faqat token va bot huquqlarini tekshirish (hech narsa yuborilmaydi)"
+        type: boolean
+        default: false
+      review_next:
+        description: "Ertangi post namunasini nazorat guruhiga hozir yuborish"
         type: boolean
         default: false
       preview_chat_id:
@@ -59,5 +65,7 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
           CHECK: ${{ inputs.check && '1' || '' }}
           PREVIEW_CHAT_ID: ${{ inputs.preview_chat_id }}
+          REVIEW_GROUP_ID: ${{ vars.REVIEW_GROUP_ID }}
+          REVIEW_NEXT: ${{ (inputs.review_next || github.event.schedule == '0 13 * * *') && '1' || '' }}
           PUSH: "1"
         run: python3 tools/publish.py

@@ -10,6 +10,8 @@ Muhit o'zgaruvchilari:
   DRY_RUN=1            hech narsa yubormaydi va saqlamaydi, faqat nima bo'lishini ko'rsatadi
   CHECK=1              faqat token, kanal va bot huquqlarini tekshiradi
   PREVIEW_CHAT_ID      namuna: postni kanalga emas, shu chatga (masalan, o'z Telegram ID'ingizga) yuboradi
+  REVIEW_GROUP_ID      nazorat guruhi: kechqurun ertangi post namunasi, ertalab "kanalga chiqdi" xabari shu guruhga boradi
+  REVIEW_NEXT=1        faqat nazorat guruhiga ertangi postning namunasini yuboradi (kechki cron)
   PUSH=1               o'zgarishlarni git'ga commit + push qiladi (Actions'da yoqilgan)
 
 Mantiq: bir kunda faqat bitta maqola. Avval o'tgan kunlarda yuborilmay qolganlar
@@ -39,6 +41,7 @@ CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "").strip()
 FB_PAGE_TOKEN = os.environ.get("FB_PAGE_TOKEN", "").strip()
 FORCE = os.environ.get("FORCE_SLUG", "").strip()
+REVIEW_GROUP = os.environ.get("REVIEW_GROUP_ID", "").strip()
 DRY = os.environ.get("DRY_RUN", "").strip() not in ("", "0", "false")
 PUSH = os.environ.get("PUSH", "").strip() not in ("", "0", "false")
 
@@ -96,10 +99,13 @@ def api_post(url: str, data: dict) -> dict:
         raise RuntimeError(f"HTTP {e.code}: {body[:400]}") from None
 
 
-def send_telegram(post: dict, site: dict, image_url: str, article_url: str, chat_id: str = "") -> int:
+def send_telegram(post: dict, site: dict, image_url: str, article_url: str, chat_id: str = "", header: str = "") -> int:
+    text = telegram_text(post, site)
+    if header:
+        text = f"<i>{header}</i>\n\n{text}"
     payload = {
         "chat_id": chat_id or CHAT_ID,
-        "text": telegram_text(post, site),
+        "text": text,
         "parse_mode": "HTML",
         "link_preview_options": json.dumps({"url": image_url, "prefer_large_media": True, "show_above_text": True}),
         "reply_markup": json.dumps({"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]}),
@@ -108,6 +114,41 @@ def send_telegram(post: dict, site: dict, image_url: str, article_url: str, chat
     if not res.get("ok"):
         raise RuntimeError(f"Telegram: {res}")
     return res["result"]["message_id"]
+
+
+def notify_group(text: str) -> None:
+    """Nazorat guruhiga qisqa xabar (xato bo'lsa nashrni to'xtatmaydi)."""
+    if not REVIEW_GROUP:
+        return
+    try:
+        api_post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+                 {"chat_id": REVIEW_GROUP, "text": text, "parse_mode": "HTML", "disable_web_page_preview": "true"})
+    except Exception as e:  # noqa: BLE001
+        log(f"  (guruhga xabar ketmadi: {e})")
+
+
+def review_next() -> None:
+    """Kechki cron: ertaga chiqadigan postni nazorat guruhiga namuna sifatida yuboradi."""
+    if not REVIEW_GROUP:
+        log("REVIEW_GROUP_ID o'rnatilmagan — nazorat guruhi yo'q")
+        return
+    site, posts, published = load_site(), load_posts(), load_published()
+    if site.get("paused"):
+        notify_group("⏸ Nashr to'xtatilgan (paused). Ertaga hech narsa chiqmaydi.")
+        return
+    post = next((p for p in posts if p["slug"] not in published), None)
+    if not post:
+        notify_group("📭 Navbat bo'sh: ertaga chiqadigan maqola yo'q. posts/ papkasiga yangi maqola qo'shing.")
+        return
+    base = site["base_url"].rstrip("/")
+    image_url = f"{base}/assets/cards/{post['slug']}.jpg"
+    article_url = f"{base}/maqolalar/{post['slug']}/"
+    if not wait_until_live(image_url, timeout=90):
+        notify_group(f"⚠️ Ertangi post rasmi saytda topilmadi: {image_url}")
+        sys.exit(1)
+    header = f"🕘 Ertaga 09:00 da kanalga chiqadi · № {post['number']:02d}. Tuzatish bo'lsa shu yerga yozing."
+    send_telegram(post, site, image_url, article_url, chat_id=REVIEW_GROUP, header=header)
+    log(f"✅ Nazorat guruhiga namuna yuborildi: № {post['number']:02d} «{post['title']}»")
 
 
 def send_facebook(post: dict, site: dict, image_url: str, article_url: str) -> str:
@@ -181,8 +222,13 @@ def check_telegram() -> None:
         chat = m.get("chat", {})
         if chat.get("type") == "private":
             seen[chat["id"]] = (chat.get("first_name", "") + " " + chat.get("last_name", "")).strip() or chat.get("username", "")
+        elif chat.get("type") in ("group", "supergroup"):
+            seen[chat["id"]] = f"guruh «{chat.get('title', '')}»"
     if seen:
-        log("Botga yozganlar: " + ", ".join(f"{name} → {cid}" for cid, name in seen.items()))
+        log("Botga yozganlar / bot qo'shilgan guruhlar: " + ", ".join(f"{name} → {cid}" for cid, name in seen.items()))
+    if REVIEW_GROUP:
+        g = api_post(f"https://api.telegram.org/bot{TOKEN}/getChat", {"chat_id": REVIEW_GROUP})
+        log(("✅ Nazorat guruhi: " + g["result"].get("title", "")) if g.get("ok") else f"❌ Nazorat guruhi topilmadi: {g}")
     else:
         log("Botga hali hech kim yozmagan (yoki yozuvlar eskirgan)")
 
@@ -209,6 +255,9 @@ def main() -> None:
         return
     if os.environ.get("PREVIEW_CHAT_ID", "").strip():
         preview(os.environ["PREVIEW_CHAT_ID"].strip())
+        return
+    if os.environ.get("REVIEW_NEXT", "").strip() not in ("", "0", "false"):
+        review_next()
         return
     site = load_site()
     posts = load_posts()
@@ -273,9 +322,12 @@ def main() -> None:
             try:
                 entry["telegram"] = send_telegram(post, site, image_url, article_url)
                 log(f"  ✅ Telegram: xabar #{entry['telegram']}")
+                notify_group(f"✅ Kanalga chiqdi: № {post['number']:02d} «{post['title']}»\n"
+                             f"https://t.me/{CHAT_ID.lstrip('@')}/{entry['telegram']}")
             except Exception as e:  # noqa: BLE001
                 errors.append(f"Telegram: {e}")
                 log(f"  ❌ Telegram xatosi: {e}")
+                notify_group(f"❌ № {post['number']:02d} kanalga chiqmadi: {e}. Ertaga qayta uriniladi.")
     else:
         log("  Telegram sozlanmagan (TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)")
 

@@ -36,6 +36,7 @@ Fayl nomida faqat lotin harflar, raqamlar va `-` ishlating.
 |---|---|---|
 | `TELEGRAM_BOT_TOKEN` | secret | @BotFather bergan token. Bot kanalda **admin** (xabar yuborish huquqi bilan) bo‘lishi kerak |
 | `TELEGRAM_CHAT_ID` | variable | `@avazbek_tulovov` |
+| `REVIEW_GROUP_ID` | variable | ixtiyoriy — nazorat guruhi ID'si: har kuni 18:00 da ertangi post namunasi, 09:00 da «kanalga chiqdi» xabari |
 | `FB_PAGE_ID` | variable | ixtiyoriy — Facebook **sahifa** ID'si |
 | `FB_PAGE_TOKEN` | secret | ixtiyoriy — sahifaning uzoq muddatli tokeni (`pages_manage_posts`, `pages_read_engagement`) |
 
