@@ -173,6 +173,18 @@ def check_telegram() -> None:
     else:
         sys.exit(f"❌ Bot kanalda admin emas yoki 'Post messages' huquqi yo'q (status={status}, can_post={can_post})")
     log("Hammasi joyida. Ertalabki nashr ishlaydi.")
+    # Botga yozgan (Start bosgan) foydalanuvchilar — namuna yuborish uchun ID'lari
+    upd = api_post(f"https://api.telegram.org/bot{TOKEN}/getUpdates", {"limit": 100})
+    seen = {}
+    for u in upd.get("result", []):
+        m = u.get("message") or u.get("my_chat_member", {})
+        chat = m.get("chat", {})
+        if chat.get("type") == "private":
+            seen[chat["id"]] = (chat.get("first_name", "") + " " + chat.get("last_name", "")).strip() or chat.get("username", "")
+    if seen:
+        log("Botga yozganlar: " + ", ".join(f"{name} → {cid}" for cid, name in seen.items()))
+    else:
+        log("Botga hali hech kim yozmagan (yoki yozuvlar eskirgan)")
 
 
 def preview(chat_id: str) -> None:
