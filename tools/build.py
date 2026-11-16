@@ -225,6 +225,18 @@ def build_site(all_posts: bool = False) -> None:
         if slug not in keep:
             shutil.rmtree(d)
 
+    # kartalar galereyasi — saytda ko'rinmaydi, faqat havola orqali (ustoz bilan ko'rib chiqish uchun)
+    items = []
+    for p in sorted(posts, key=lambda x: x["number"]):
+        status = f"chiqqan: {uz_date(p['date'])}" if p["published"] else "navbatda"
+        label = f"№ {p['number']:02d}" if p["number"] else "qo‘shimcha"
+        items.append(f'<a class="card" href="../assets/cards/{p["slug"]}.jpg" target="_blank"><img src="../assets/cards/{p["slug"]}.jpg" alt="" loading="lazy" width="1200" height="1200">'
+                     f'<div class="card-body"><small>{label} · {status}</small><h3>{html.escape(p["title"])}</h3></div></a>')
+    gal = render(tpl("gallery.html"), items="\n".join(items), count=len(posts))
+    write("kartalar/index.html", page(layout, site, "../", "kartalar/", f"Rasmlar — {site['name']}",
+                                      "Maqolalar uchun tayyorlangan rasmlar", "assets/img/og.jpg", gal,
+                                      extra_head='<meta name="robots" content="noindex, nofollow">'))
+
     # sitemap va robots
     urls = [f"{base}/", f"{base}/maqolalar/"] + [f"{base}/maqolalar/{p['slug']}/" for p in visible]
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
