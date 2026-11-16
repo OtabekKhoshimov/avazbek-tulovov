@@ -12,7 +12,7 @@ import os
 import re
 import shutil
 import sys
-from datetime import date
+from datetime import date, timedelta
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(ROOT, "tools", "templates")
@@ -157,6 +157,20 @@ def write(rel: str, text: str) -> None:
         f.write(text)
 
 
+def planned_dates(posts: list, site: dict, today: str) -> dict:
+    """Navbatdagi maqolalar qaysi kuni chiqishi (kuniga bittadan, raqam tartibida)."""
+    if site.get("paused"):
+        return {}
+    d = max(date.fromisoformat(site.get("start_date", today)), date.fromisoformat(today))
+    if any(p["published"] and p["date"] == today for p in posts):
+        d = max(d, date.fromisoformat(today) + timedelta(days=1))
+    plan = {}
+    for p in sorted((p for p in posts if not p["published"]), key=lambda x: x["number"]):
+        plan[p["slug"]] = d.isoformat()
+        d += timedelta(days=1)
+    return plan
+
+
 def build_site(all_posts: bool = False) -> None:
     site = load_site()
     published = load_published()
@@ -227,8 +241,14 @@ def build_site(all_posts: bool = False) -> None:
 
     # kartalar galereyasi — saytda ko'rinmaydi, faqat havola orqali (ustoz bilan ko'rib chiqish uchun)
     items = []
+    plan = planned_dates(posts, site, today)
     for p in sorted(posts, key=lambda x: x["number"]):
-        status = f"chiqqan: {uz_date(p['date'])}" if p["published"] else "navbatda"
+        if p["published"]:
+            status = f"chiqqan: {uz_date(p['date'])}"
+        elif p["slug"] in plan:
+            status = f"rejada: {uz_date(plan[p['slug']])}"
+        else:
+            status = "navbatda"
         label = f"№ {p['number']:02d}" if p["number"] else "qo‘shimcha"
         items.append(f'<a class="card" href="../assets/cards/{p["slug"]}.jpg" target="_blank"><img src="../assets/cards/{p["slug"]}.jpg" alt="" loading="lazy" width="1200" height="1200">'
                      f'<div class="card-body"><small>{label} · {status}</small><h3>{html.escape(p["title"])}</h3></div></a>')

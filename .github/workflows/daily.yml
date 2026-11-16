@@ -24,6 +24,10 @@ on:
         description: "Faqat token va bot huquqlarini tekshirish (hech narsa yuborilmaydi)"
         type: boolean
         default: false
+      preview_chat_id:
+        description: "Namuna: postni kanalga emas, shu Telegram ID'ga yuborish (avval botga Start bosing)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -54,5 +58,6 @@ jobs:
           FORCE_SLUG: ${{ inputs.slug }}
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
           CHECK: ${{ inputs.check && '1' || '' }}
+          PREVIEW_CHAT_ID: ${{ inputs.preview_chat_id }}
           PUSH: "1"
         run: python3 tools/publish.py

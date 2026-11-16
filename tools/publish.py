@@ -9,6 +9,7 @@ Muhit o'zgaruvchilari:
   FORCE_SLUG           aynan shu maqolani hozir joylash: raqami (13) yoki papka nomi
   DRY_RUN=1            hech narsa yubormaydi va saqlamaydi, faqat nima bo'lishini ko'rsatadi
   CHECK=1              faqat token, kanal va bot huquqlarini tekshiradi
+  PREVIEW_CHAT_ID      namuna: postni kanalga emas, shu chatga (masalan, o'z Telegram ID'ingizga) yuboradi
   PUSH=1               o'zgarishlarni git'ga commit + push qiladi (Actions'da yoqilgan)
 
 Mantiq: bir kunda faqat bitta maqola. Avval o'tgan kunlarda yuborilmay qolganlar
@@ -95,9 +96,9 @@ def api_post(url: str, data: dict) -> dict:
         raise RuntimeError(f"HTTP {e.code}: {body[:400]}") from None
 
 
-def send_telegram(post: dict, site: dict, image_url: str, article_url: str) -> int:
+def send_telegram(post: dict, site: dict, image_url: str, article_url: str, chat_id: str = "") -> int:
     payload = {
-        "chat_id": CHAT_ID,
+        "chat_id": chat_id or CHAT_ID,
         "text": telegram_text(post, site),
         "parse_mode": "HTML",
         "link_preview_options": json.dumps({"url": image_url, "prefer_large_media": True, "show_above_text": True}),
@@ -174,9 +175,28 @@ def check_telegram() -> None:
     log("Hammasi joyida. Ertalabki nashr ishlaydi.")
 
 
+def preview(chat_id: str) -> None:
+    """Navbatdagi (yoki FORCE_SLUG) postni kanalga emas, ko'rsatilgan chatga namuna sifatida yuboradi."""
+    site, posts, published = load_site(), load_posts(), load_published()
+    post = find_forced(posts, FORCE) if FORCE else next((p for p in posts if p["slug"] not in published), None)
+    if not post:
+        sys.exit("Navbatda maqola yo'q")
+    base = site["base_url"].rstrip("/")
+    image_url = f"{base}/assets/cards/{post['slug']}.jpg"
+    article_url = f"{base}/maqolalar/{post['slug']}/"
+    if not wait_until_live(image_url, timeout=60):
+        sys.exit(f"Rasm hali saytda yo'q: {image_url}")
+    mid = send_telegram(post, site, image_url, article_url, chat_id=chat_id)
+    log(f"✅ Namuna yuborildi (chat {chat_id}, xabar #{mid}): № {post['number']:02d} «{post['title']}»")
+    log("Eslatma: «Saytda o‘qish» tugmasi maqola saytga chiqqunicha 404 beradi — bu normal.")
+
+
 def main() -> None:
     if os.environ.get("CHECK", "").strip() not in ("", "0", "false"):
         check_telegram()
+        return
+    if os.environ.get("PREVIEW_CHAT_ID", "").strip():
+        preview(os.environ["PREVIEW_CHAT_ID"].strip())
         return
     site = load_site()
     posts = load_posts()
