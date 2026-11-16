@@ -226,11 +226,11 @@ def check_telegram() -> None:
             seen[chat["id"]] = f"guruh «{chat.get('title', '')}»"
     if seen:
         log("Botga yozganlar / bot qo'shilgan guruhlar: " + ", ".join(f"{name} → {cid}" for cid, name in seen.items()))
+    else:
+        log("Botga hali hech kim yozmagan (yoki yozuvlar eskirgan)")
     if REVIEW_GROUP:
         g = api_post(f"https://api.telegram.org/bot{TOKEN}/getChat", {"chat_id": REVIEW_GROUP})
         log(("✅ Nazorat guruhi: " + g["result"].get("title", "")) if g.get("ok") else f"❌ Nazorat guruhi topilmadi: {g}")
-    else:
-        log("Botga hali hech kim yozmagan (yoki yozuvlar eskirgan)")
 
 
 def preview(chat_id: str) -> None:
