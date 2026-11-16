@@ -8,6 +8,7 @@ Muhit o'zgaruvchilari:
   FB_PAGE_TOKEN        ixtiyoriy — Facebook sahifa tokeni (secret)
   FORCE_SLUG           aynan shu maqolani hozir joylash: raqami (13) yoki papka nomi
   DRY_RUN=1            hech narsa yubormaydi va saqlamaydi, faqat nima bo'lishini ko'rsatadi
+  CHECK=1              faqat token, kanal va bot huquqlarini tekshiradi
   PUSH=1               o'zgarishlarni git'ga commit + push qiladi (Actions'da yoqilgan)
 
 Mantiq: bir kunda faqat bitta maqola. Avval o'tgan kunlarda yuborilmay qolganlar
@@ -150,7 +151,33 @@ def choose(posts: list, published: dict, site: dict, today: str):
     return pending[0], "navbatdagi maqola"
 
 
+def check_telegram() -> None:
+    """Hech narsa yubormasdan token, kanal va bot huquqlarini tekshiradi (CHECK=1)."""
+    if not (TOKEN and CHAT_ID):
+        sys.exit("TELEGRAM_BOT_TOKEN secret yoki TELEGRAM_CHAT_ID variable yo'q")
+    me = api_post(f"https://api.telegram.org/bot{TOKEN}/getMe", {})
+    if not me.get("ok"):
+        sys.exit(f"Token noto'g'ri: {me}")
+    bot = me["result"]
+    log(f"✅ Token to'g'ri: bot @{bot['username']}")
+    chat = api_post(f"https://api.telegram.org/bot{TOKEN}/getChat", {"chat_id": CHAT_ID})
+    if not chat.get("ok"):
+        sys.exit(f"Kanal topilmadi yoki bot unga qo'shilmagan: {chat}")
+    log(f"✅ Kanal topildi: {chat['result'].get('title')} ({CHAT_ID})")
+    member = api_post(f"https://api.telegram.org/bot{TOKEN}/getChatMember", {"chat_id": CHAT_ID, "user_id": bot["id"]})
+    status = member.get("result", {}).get("status")
+    can_post = member.get("result", {}).get("can_post_messages")
+    if status in ("administrator", "creator") and can_post is not False:
+        log("✅ Bot kanalda administrator, xabar yuborish huquqi bor")
+    else:
+        sys.exit(f"❌ Bot kanalda admin emas yoki 'Post messages' huquqi yo'q (status={status}, can_post={can_post})")
+    log("Hammasi joyida. Ertalabki nashr ishlaydi.")
+
+
 def main() -> None:
+    if os.environ.get("CHECK", "").strip() not in ("", "0", "false"):
+        check_telegram()
+        return
     site = load_site()
     posts = load_posts()
     published = load_published()

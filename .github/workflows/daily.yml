@@ -20,6 +20,10 @@ on:
         description: "Sinov: hech narsa yuborilmaydi, faqat log"
         type: boolean
         default: false
+      check:
+        description: "Faqat token va bot huquqlarini tekshirish (hech narsa yuborilmaydi)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -49,5 +53,6 @@ jobs:
           FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
           FORCE_SLUG: ${{ inputs.slug }}
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          CHECK: ${{ inputs.check && '1' || '' }}
           PUSH: "1"
         run: python3 tools/publish.py
