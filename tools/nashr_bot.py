@@ -187,7 +187,7 @@ def ensure_card_live(post: dict, site: dict) -> str:
 
 # ---------- namuna va tasdiqlash ----------
 
-def send_preview(key: str = "", note: str = ""):
+def send_preview(key: str = "", note: str = "", auto: bool = False):
     with LOCK:
         git_sync()
         site = load_site()
@@ -215,7 +215,8 @@ def send_preview(key: str = "", note: str = ""):
         if msg:
             st = load_state()
             st["previews"][post["slug"]] = msg["message_id"]
-            st["last_preview_day"] = datetime.now(TZ).date().isoformat()
+            if auto:
+                st["last_preview_day"] = datetime.now(TZ).date().isoformat()
             save_state(st)
             log("namuna yuborildi:", post["slug"])
 
@@ -337,7 +338,7 @@ def scheduler() -> None:
                 st["last_preview_day"] = today
                 save_state(st)
                 if not st["approved_morning"]:
-                    send_preview("", note=f"Ertangi maqola. Tasdiqlasangiz ertaga {PUBLISH_HOUR:02d}:00 da (yoki hozir) chiqadi.")
+                    send_preview("", note=f"Ertangi maqola. Tasdiqlasangiz ertaga {PUBLISH_HOUR:02d}:00 da (yoki hozir) chiqadi.", auto=True)
         except Exception:  # noqa: BLE001
             log("scheduler xato:\n" + traceback.format_exc())
         time.sleep(30)
