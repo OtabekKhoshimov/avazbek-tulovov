@@ -44,6 +44,8 @@ def load_env() -> None:
 
 load_env()
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+if TOKEN == "BU_YERGA_TOKEN":
+    TOKEN = ""
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 GROUP = os.environ.get("REVIEW_GROUP_ID", "").strip()
 REPO = os.environ.get("REPO_DIR", os.path.dirname(HERE)).rstrip("/")
@@ -325,7 +327,9 @@ def main() -> None:
     if not (TOKEN and CHAT_ID and GROUP):
         sys.exit("TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, REVIEW_GROUP_ID kerak (.env)")
     me = tg("getMe")
-    log("bot:", me and me.get("username"), "| repo:", REPO, "| guruh:", GROUP)
+    if not me:
+        sys.exit("Token noto'g'ri yoki Telegram'ga ulanib bo'lmadi")
+    log("bot:", me.get("username"), "| repo:", REPO, "| guruh:", GROUP)
     tg("deleteWebhook")
     threading.Thread(target=scheduler, daemon=True).start()
     offset = 0
