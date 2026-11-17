@@ -209,6 +209,7 @@ def meta_label(post: dict, lang: str, T: dict) -> str:
 def card_html(post: dict, lang: str, T: dict, root: str, href: str) -> str:
     p = localized(post, lang)
     return render(tpl("card.html"), root=root, href=href, slug=p["slug"],
+                  ver=file_version(f"assets/cards/{p['slug']}-sm.jpg"),
                   title=html.escape(p["title"]), excerpt=html.escape(p["excerpt"]), meta=meta_label(p, lang, T))
 
 
@@ -327,7 +328,8 @@ def build_site(all_posts: bool = False) -> None:
             notice = "" if L["translated"] else f'<p class="notice">{html.escape(T["untranslated"])}</p>'
             art = render(tpl("article.html"), root=root, title=html.escape(L["title"]), quote=html.escape(L["quote"]),
                          meta=meta_label(p, lang, T), body=body_html(L), notice=notice,
-                         slug=p["slug"], url=html.escape(url), url_q=html.escape(url, quote=True),
+                         slug=p["slug"], ver=file_version(f"assets/cards/{p['slug']}.jpg"),
+                         url=html.escape(url), url_q=html.escape(url, quote=True),
                          tg_share=f"https://t.me/share/url?url={url}&text={html.escape(L['title'])}",
                          fb_share=f"https://www.facebook.com/sharer/sharer.php?u={url}",
                          channel=site["telegram_channel"], site_name=site["name"], nav=nav, **tvars(T))
@@ -339,7 +341,7 @@ def build_site(all_posts: bool = False) -> None:
                     f'<script type="application/ld+json">{ld}</script>'
             write(f"{pre}maqolalar/{p['slug']}/index.html",
                   page(layout, site, lang, T, depth, f"maqolalar/{p['slug']}/", f"{L['title']} — {site['name']}",
-                       L["quote"], f"assets/cards/{p['slug']}.jpg", art, extra_head=extra, body_class="article-page"))
+                       L["quote"], f"assets/cards/{p['slug']}.jpg?v={file_version(f'assets/cards/{p[chr(115)+chr(108)+chr(117)+chr(103)]}.jpg')}", art, extra_head=extra, body_class="article-page"))
             urls.append(url)
 
         # e'lon qilinmagan maqola papkalarini tozalash
@@ -360,7 +362,8 @@ def build_site(all_posts: bool = False) -> None:
         else:
             status = "navbatda"
         label = f"№ {p['number']:02d}" if p["number"] else "qo‘shimcha"
-        items.append(f'<a class="card" href="../assets/cards/{p["slug"]}.jpg" target="_blank"><img src="../assets/cards/{p["slug"]}.jpg" alt="" loading="lazy" width="1200" height="1200">'
+        v = file_version(f"assets/cards/{p['slug']}.jpg")
+        items.append(f'<a class="card" href="../assets/cards/{p["slug"]}.jpg?v={v}" target="_blank"><img src="../assets/cards/{p["slug"]}.jpg?v={v}" alt="" loading="lazy" width="1200" height="1200">'
                      f'<div class="card-body"><small>{label} · {status}</small><h3>{html.escape(p["title"])}</h3></div></a>')
     gal = render(tpl("gallery.html"), items="\n".join(items), count=len(posts))
     write("kartalar/index.html", page(layout, site, "uz", T, 1, "kartalar/", f"Rasmlar — {site['name']}",
