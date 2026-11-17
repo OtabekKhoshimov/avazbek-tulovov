@@ -9,6 +9,8 @@ Square 1:1 editorial illustration for a thoughtful article by an education leade
 
 ## Sahnalar
 
+**03 · nega-aynan-registon** — Scene: the Registan ensemble in Samarkand at golden hour, the three madrasas with their tiled arches glowing; in the foreground, a few students with backpacks seen from behind walking toward the madrasa gates as if going to school today; the ancient place of learning and the modern students in one frame; dignified, timeless, no faces. *(2-variant: a split composition — left, the old Registan madrasa courtyard with scholars' silhouettes and open manuscripts; right, a bright modern Registon school classroom with children at desks seen from behind; the two halves joined by the same tiled arch motif.)*
+
 **04 · men-jamoamsiz-hech-kim-emasman** — Scene: a modern school building under construction, tall concrete columns rising, and in the foreground a group of teachers and builders standing shoulder to shoulder seen from behind, looking up at the building together; the columns and the people visually echo each other as pillars.
 
 **05 · ustozni-nima-bilan-baholash-kerak** — Scene: a quiet classroom after the lesson, late afternoon light through tall windows; on the board a few chalk marks, on the first desk an open notebook where the handwriting clearly improves from the left page to the right page; a teacher's hand resting on the desk edge, no face visible.
