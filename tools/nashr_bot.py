@@ -57,7 +57,25 @@ PYTHON = sys.executable
 GIT_ENV = {**os.environ, "HOME": BASE, "GIT_SSH_COMMAND": f"ssh -i {BASE}/.ssh/id_ed25519 -o UserKnownHostsFile={BASE}/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"}
 
 sys.path.insert(0, HERE)
-from build import load_posts, load_published, load_site, telegram_text  # noqa: E402
+import importlib  # noqa: E402
+
+import build as B  # noqa: E402
+
+
+def load_posts():
+    return B.load_posts()
+
+
+def load_published():
+    return B.load_published()
+
+
+def load_site():
+    return B.load_site()
+
+
+def telegram_text(post, site):
+    return B.telegram_text(post, site)
 
 LOCK = threading.Lock()
 
@@ -114,8 +132,10 @@ def run(cmd: list, env: dict = None, timeout: int = 900) -> subprocess.Completed
 
 
 def git_sync() -> None:
+    """Repo'ni GitHub bilan tenglashtiradi va build.py yangilangan bo'lsa qayta yuklaydi."""
     run(["git", "fetch", "-q", "origin"])
     run(["git", "reset", "-q", "--hard", "origin/main"])
+    importlib.reload(B)
 
 
 def find_post(key: str = ""):
@@ -186,6 +206,9 @@ def send_preview(key: str = "", note: str = ""):
             [{"text": f"🕘 Tasdiqlash — ertaga {PUBLISH_HOUR:02d}:00 da", "callback_data": f"morning:{post['slug']}"}],
             [{"text": "✏️ Hali emas", "callback_data": f"later:{post['slug']}"}],
         ]}
+        old = load_state()["previews"].get(post["slug"])
+        if old:
+            tg("deleteMessage", chat_id=GROUP, message_id=old)
         msg = tg("sendMessage", chat_id=GROUP, text=header + "\n\n" + telegram_text(post, site), parse_mode="HTML",
                  link_preview_options={"url": image_url, "prefer_large_media": True, "show_above_text": True},
                  reply_markup=kb)
