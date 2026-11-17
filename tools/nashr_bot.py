@@ -228,6 +228,32 @@ def send_preview(key: str = "", note: str = "", auto: bool = False):
             log("namuna yuborildi:", post["slug"])
 
 
+def refresh_image(key: str) -> None:
+    """Rasm almashganda: kartani qayta yasaydi, saytga chiqaradi; maqola kanalda chiqqan bo'lsa —
+    kanaldagi xabarni o'chirmasdan tahrirlab, rasm-previewni yangisiga almashtiradi."""
+    with LOCK:
+        git_sync()
+        site = load_site()
+        post = find_post(key)
+        if not post:
+            say(f"«{html.escape(key)}» topilmadi.")
+            return
+        image_url = ensure_card_live(post, site)
+        article_url = f"{site['base_url'].rstrip('/')}/maqolalar/{post['slug']}/"
+        entry = load_published().get(post["slug"])
+        if entry and entry.get("telegram"):
+            res = tg("editMessageText", chat_id=CHAT_ID, message_id=entry["telegram"],
+                     text=telegram_text(post, site), parse_mode="HTML",
+                     link_preview_options={"url": image_url, "prefer_large_media": True, "show_above_text": True},
+                     reply_markup={"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]})
+            if res:
+                say(f"🖼 № {post['number']:02d} kanaldagi rasmi yangilandi: https://t.me/{CHAT_ID.lstrip('@')}/{entry['telegram']}")
+            else:
+                say(f"⚠️ № {post['number']:02d} kanaldagi xabarni tahrirlab bo‘lmadi (bot xabari emas yoki o‘chirilgan).")
+        else:
+            say(f"🖼 № {post['number']:02d} kartasi yangilandi (hali kanalga chiqmagan). Namuna: /namuna {post['number']}")
+
+
 def publish(slug: str, who: str = "") -> bool:
     """tools/publish.py ni ishga tushiradi: sayt + kanal. True — kanalga chiqdi."""
     with LOCK:
@@ -308,6 +334,11 @@ def on_message(m: dict) -> None:
     arg = arg.strip()
     if cmd == "/namuna":
         threading.Thread(target=send_preview, args=(arg,), daemon=True).start()
+    elif cmd == "/rasm":
+        if not arg:
+            say("Qaysi maqola? Masalan: /rasm 5")
+        else:
+            threading.Thread(target=refresh_image, args=(arg,), daemon=True).start()
     elif cmd == "/holat":
         git_sync()
         posts, published, st = load_posts(), load_published(), load_state()
@@ -324,7 +355,7 @@ def on_message(m: dict) -> None:
         save_state(st)
         say("⏸ Kechki avtomatik namuna to‘xtatildi. /namuna bilan qo‘lda yuborish mumkin." if st["paused"] else "▶️ Kechki avtomatik namuna yoqildi.")
     elif cmd in ("/start", "/help", "/yordam"):
-        say("Buyruqlar: /namuna [N] — namuna yuborish, /holat — holat, /pauza, /davom")
+        say("Buyruqlar: /namuna [N] — namuna yuborish, /rasm N — rasm yangilangach kartani (va kanaldagi postni) yangilash, /holat, /pauza, /davom")
 
 
 # ---------- jadval ----------
@@ -354,6 +385,9 @@ def scheduler() -> None:
 def main() -> None:
     if len(sys.argv) > 1 and sys.argv[1] == "preview":
         send_preview(sys.argv[2] if len(sys.argv) > 2 else "")
+        return
+    if len(sys.argv) > 2 and sys.argv[1] == "refresh":
+        refresh_image(sys.argv[2])
         return
     if not (TOKEN and CHAT_ID and GROUP):
         sys.exit("TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, REVIEW_GROUP_ID kerak (.env)")
