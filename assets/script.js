@@ -14,7 +14,7 @@
     b.addEventListener("click", function () {
       var url = b.getAttribute("data-url");
       (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () {
-        var t = b.textContent; b.textContent = "Nusxalandi ✓"; setTimeout(function () { b.textContent = t; }, 1800);
+        var t = b.textContent; b.textContent = window.T_COPIED || "✓"; setTimeout(function () { b.textContent = t; }, 1800);
       }, function () { window.prompt("Havola:", url); });
     });
   });

@@ -127,9 +127,45 @@ def render(template: str, **ctx) -> str:
     return out
 
 
-def uz_date(iso: str) -> str:
+LANGS = ["uz", "ru", "en"]
+OG_LOCALE = {"uz": "uz_UZ", "ru": "ru_RU", "en": "en_US"}
+
+
+def load_i18n() -> dict:
+    with open(os.path.join(ROOT, "data", "i18n.json"), encoding="utf-8") as f:
+        return json.load(f)
+
+
+def lp(lang: str) -> str:
+    """Til prefiksi: uz — ildiz, qolganlari /ru/, /en/."""
+    return "" if lang == "uz" else lang + "/"
+
+
+def uz_date(iso: str, lang: str = "uz", T: dict = None) -> str:
+    T = T or load_i18n()[lang]
     y, m, d = (int(x) for x in iso.split("-"))
-    return f"{d}-{MONTHS[m - 1]}, {y}"
+    return T["date_fmt"].format(d=d, m=T["months"][m - 1], y=y)
+
+
+def translation(slug: str, lang: str):
+    """posts/<lang>/<slug>.txt bo'lsa — tarjima (title, quote, body)."""
+    if lang == "uz":
+        return None
+    path = os.path.join(ROOT, "posts", lang, slug + ".txt")
+    if not os.path.exists(path):
+        return None
+    t = parse_post(path)
+    return {"title": t["title"], "quote": t["quote"], "body": t["body"], "excerpt": t["excerpt"]}
+
+
+def localized(post: dict, lang: str) -> dict:
+    """Maqolaning berilgan tildagi ko'rinishi (tarjima bo'lmasa — o'zbekcha + belgi)."""
+    tr = translation(post["slug"], lang)
+    out = dict(post)
+    out["translated"] = lang == "uz" or tr is not None
+    if tr:
+        out.update(tr)
+    return out
 
 
 def body_html(post: dict) -> str:
@@ -150,30 +186,41 @@ def body_html(post: dict) -> str:
     return "\n".join(out)
 
 
-def meta_label(post: dict) -> str:
-    """'№ 02 · 16-noyabr, 2026' yoki raqamsiz postlar uchun faqat sana."""
-    d = uz_date(post["date"])
+def meta_label(post: dict, lang: str, T: dict) -> str:
+    d = uz_date(post["date"], lang, T)
     return f"№ {post['number']:02d} · {d}" if post["number"] else d
 
 
-def card_html(post: dict, root: str) -> str:
-    return render(tpl("card.html"), root=root, slug=post["slug"],
-                  title=html.escape(post["title"]), excerpt=html.escape(post["excerpt"]),
-                  meta=meta_label(post))
+def card_html(post: dict, lang: str, T: dict, root: str, href: str) -> str:
+    p = localized(post, lang)
+    return render(tpl("card.html"), root=root, href=href, slug=p["slug"],
+                  title=html.escape(p["title"]), excerpt=html.escape(p["excerpt"]), meta=meta_label(p, lang, T))
 
 
-def page(layout: str, site: dict, root: str, path: str, title: str, description: str,
-         image: str, content: str, extra_head: str = "", body_class: str = "") -> str:
+def tvars(T: dict) -> dict:
+    return {"t_" + k: v for k, v in T.items() if isinstance(v, str)}
+
+
+def page(layout: str, site: dict, lang: str, T: dict, depth: int, path: str, title: str, description: str,
+         image: str, content: str, extra_head: str = "", body_class: str = "", langs=None) -> str:
+    """path — tilsiz nisbiy manzil ('' , 'maqolalar/', 'maqolalar/slug/'). depth — sahifaning ildizdan chuqurligi."""
     base = site["base_url"].rstrip("/")
-    return render(layout, root=root, site_name=site["name"], role=site["role"],
+    root = "../" * depth
+    langs = langs or LANGS
+    alts = "".join(f'  <link rel="alternate" hreflang="{L}" href="{base}/{lp(L)}{path}">\n' for L in langs)
+    alts += f'  <link rel="alternate" hreflang="x-default" href="{base}/{path}">'
+    parts = []
+    for L in langs:
+        cls = ' class="active"' if L == lang else ""
+        parts.append(f'<a href="{root}{lp(L)}{path}"{cls}>{L.upper()}</a>')
+    switch = "".join(parts)
+    fb = site.get("facebook_url", "")
+    return render(layout, root=root, home=root + lp(lang), site_name=site["name"],
                   title=html.escape(title), description=html.escape(description),
-                  canonical=f"{base}/{path}", image=f"{base}/{image}",
-                  channel=site["telegram_channel"], contact=site["telegram_contact"],
-                  facebook=site.get("facebook_url", ""),
-                  facebook_link=(f'<a href="{html.escape(site["facebook_url"])}" target="_blank" rel="noopener">Facebook</a>'
-                                 if site.get("facebook_url") else ""),
-                  year=date.today().year, content=content, extra_head=extra_head,
-                  body_class=body_class)
+                  canonical=f"{base}/{lp(lang)}{path}", image=f"{base}/{image}", alternates=alts, lang_switch=switch,
+                  og_locale=OG_LOCALE[lang], channel=site["telegram_channel"], contact=site["telegram_contact"],
+                  facebook_link=(f'<a href="{html.escape(fb)}" target="_blank" rel="noopener">Facebook</a>' if fb else ""),
+                  year=date.today().year, content=content, extra_head=extra_head, body_class=body_class, **tvars(T))
 
 
 def write(rel: str, text: str) -> None:
@@ -201,6 +248,7 @@ def build_site(all_posts: bool = False) -> None:
     site = load_site()
     published = load_published()
     posts = load_posts()
+    i18n = load_i18n()
     today = date.today().isoformat()
     for p in posts:
         info = published.get(p["slug"])
@@ -214,82 +262,98 @@ def build_site(all_posts: bool = False) -> None:
 
     layout = tpl("layout.html")
     base = site["base_url"].rstrip("/")
-
-    # bosh sahifa
-    latest = "\n".join(card_html(p, "") for p in visible[:6])
-    home = render(tpl("home.html"), site_name=site["name"], role=site["role"],
-                  channel=site["telegram_channel"], contact=site["telegram_contact"],
-                  facebook_btn=(f'<a class="btn btn-outline" href="{html.escape(site["facebook_url"])}" target="_blank" rel="noopener">Facebook</a>'
-                                if site.get("facebook_url") else ""),
-                  latest=latest or '<p class="muted">Maqolalar tez orada.</p>',
-                  count=len(visible))
-    write("index.html", page(layout, site, "", "", f"{site['name']} — {site['tagline']}",
-                             site["description"], "assets/img/og.jpg", home, body_class="home"))
-
-    # maqolalar ro'yxati
-    cards = "\n".join(card_html(p, "../") for p in visible)
-    lst = render(tpl("list.html"), cards=cards or '<p class="muted">Maqolalar tez orada.</p>', count=len(visible))
-    write("maqolalar/index.html", page(layout, site, "../", "maqolalar/", f"Maqolalar — {site['name']}",
-                                       "Ta’lim, rahbarlik, tarbiya va Registon tarixi haqida maqolalar.",
-                                       "assets/img/og.jpg", lst))
-
-    # alohida maqolalar
+    fb = site.get("facebook_url", "")
+    urls = []
     keep = set()
-    for p in visible:
-        keep.add(p["slug"])
-        nav = ""
-        if p["older"]:
-            nav += f'<a class="pn pn-prev" href="../{p["older"]["slug"]}/"><small>Oldingi</small>{html.escape(p["older"]["title"])}</a>'
-        if p["newer"]:
-            nav += f'<a class="pn pn-next" href="../{p["newer"]["slug"]}/"><small>Keyingi</small>{html.escape(p["newer"]["title"])}</a>'
-        url = f"{base}/maqolalar/{p['slug']}/"
-        art = render(tpl("article.html"), title=html.escape(p["title"]), quote=html.escape(p["quote"]),
-                     meta=meta_label(p), body=body_html(p),
-                     tags=" ".join(f'<span>{html.escape(t)}</span>' for t in p["tags"]),
-                     slug=p["slug"], url=html.escape(url), url_q=html.escape(url, quote=True),
-                     tg_share=f"https://t.me/share/url?url={url}&text={html.escape(p['title'])}",
-                     fb_share=f"https://www.facebook.com/sharer/sharer.php?u={url}",
-                     channel=site["telegram_channel"], site_name=site["name"], nav=nav)
-        ld = json.dumps({"@context": "https://schema.org", "@type": "Article", "headline": p["title"],
-                         "datePublished": p["date"], "author": {"@type": "Person", "name": site["name"]},
-                         "image": f"{base}/assets/cards/{p['slug']}.jpg", "mainEntityOfPage": url,
-                         "inLanguage": "uz"}, ensure_ascii=False)
-        extra = f'<meta property="og:type" content="article"><meta property="article:published_time" content="{p["date"]}">' \
-                f'<script type="application/ld+json">{ld}</script>'
-        write(f"maqolalar/{p['slug']}/index.html",
-              page(layout, site, "../../", f"maqolalar/{p['slug']}/", f"{p['title']} — {site['name']}",
-                   p["quote"], f"assets/cards/{p['slug']}.jpg", art, extra_head=extra, body_class="article-page"))
-    # e'lon qilinmagan (yoki o'chirilgan) maqola papkalarini tozalash
-    for d in glob.glob(os.path.join(ROOT, "maqolalar", "*", "")):
-        slug = os.path.basename(os.path.dirname(d))
-        if slug not in keep:
-            shutil.rmtree(d)
 
-    # kartalar galereyasi — saytda ko'rinmaydi, faqat havola orqali (ustoz bilan ko'rib chiqish uchun)
-    items = []
+    for lang in LANGS:
+        T = i18n[lang]
+        pre = lp(lang)
+        d0 = 1 if pre else 0          # bosh sahifa chuqurligi
+
+        # --- bosh sahifa
+        values = "\n".join(f'            <li><b>{html.escape(a)}</b><span>{html.escape(b)}</span></li>' for a, b in T["values"])
+        timeline = "\n".join(f'          <li><span class="tl-year">{html.escape(y)}</span><div><b>{html.escape(t)}</b><p>{html.escape(x)}</p></div></li>'
+                              for y, t, x in T["timeline"])
+        latest = "\n".join(card_html(p, lang, T, "../" * d0, f"maqolalar/{p['slug']}/") for p in visible[:6])
+        home = render(tpl("home.html"), root="../" * d0, channel=site["telegram_channel"], contact=site["telegram_contact"],
+                      facebook_btn=(f'<a class="btn btn-outline" href="{html.escape(fb)}" target="_blank" rel="noopener">Facebook</a>' if fb else ""),
+                      latest=latest or f'<p class="muted">{T["articles_soon"]}</p>', count=len(visible),
+                      values=values, timeline=timeline, **tvars(T))
+        write(f"{pre}index.html", page(layout, site, lang, T, d0, "", T["site_title"], T["site_description"],
+                                       "assets/img/og.jpg", home, body_class="home"))
+        urls.append(f"{base}/{pre}")
+
+        # --- maqolalar ro'yxati
+        cards = "\n".join(card_html(p, lang, T, "../" * (d0 + 1), f"{p['slug']}/") for p in visible)
+        lst = render(tpl("list.html"), lead=T["list_lead"].format(n=len(visible)),
+                     cards=cards or f'<p class="muted">{T["articles_soon"]}</p>', **tvars(T))
+        write(f"{pre}maqolalar/index.html", page(layout, site, lang, T, d0 + 1, "maqolalar/",
+                                                 f"{T['list_meta_title']} — {site['name']}", T["list_description"], "assets/img/og.jpg", lst))
+        urls.append(f"{base}/{pre}maqolalar/")
+
+        # --- alohida maqolalar
+        for p in visible:
+            keep.add(p["slug"])
+            L = localized(p, lang)
+            depth = d0 + 2
+            root = "../" * depth
+            nav = ""
+            if p["older"]:
+                o = localized(p["older"], lang)
+                nav += f'<a class="pn pn-prev" href="../{o["slug"]}/"><small>{T["prev"]}</small>{html.escape(o["title"])}</a>'
+            if p["newer"]:
+                n = localized(p["newer"], lang)
+                nav += f'<a class="pn pn-next" href="../{n["slug"]}/"><small>{T["next"]}</small>{html.escape(n["title"])}</a>'
+            url = f"{base}/{pre}maqolalar/{p['slug']}/"
+            notice = "" if L["translated"] else f'<p class="notice">{html.escape(T["untranslated"])}</p>'
+            art = render(tpl("article.html"), root=root, title=html.escape(L["title"]), quote=html.escape(L["quote"]),
+                         meta=meta_label(p, lang, T), body=body_html(L), notice=notice,
+                         slug=p["slug"], url=html.escape(url), url_q=html.escape(url, quote=True),
+                         tg_share=f"https://t.me/share/url?url={url}&text={html.escape(L['title'])}",
+                         fb_share=f"https://www.facebook.com/sharer/sharer.php?u={url}",
+                         channel=site["telegram_channel"], site_name=site["name"], nav=nav, **tvars(T))
+            ld = json.dumps({"@context": "https://schema.org", "@type": "Article", "headline": L["title"],
+                             "datePublished": p["date"], "author": {"@type": "Person", "name": site["name"]},
+                             "image": f"{base}/assets/cards/{p['slug']}.jpg", "mainEntityOfPage": url,
+                             "inLanguage": lang}, ensure_ascii=False)
+            extra = f'<meta property="og:type" content="article"><meta property="article:published_time" content="{p["date"]}">' \
+                    f'<script type="application/ld+json">{ld}</script>'
+            write(f"{pre}maqolalar/{p['slug']}/index.html",
+                  page(layout, site, lang, T, depth, f"maqolalar/{p['slug']}/", f"{L['title']} — {site['name']}",
+                       L["quote"], f"assets/cards/{p['slug']}.jpg", art, extra_head=extra, body_class="article-page"))
+            urls.append(url)
+
+        # e'lon qilinmagan maqola papkalarini tozalash
+        for d in glob.glob(os.path.join(ROOT, pre, "maqolalar", "*", "")):
+            slug = os.path.basename(os.path.dirname(d))
+            if slug not in keep:
+                shutil.rmtree(d)
+
+    # kartalar galereyasi — saytda ko'rinmaydi, faqat havola orqali
+    T = i18n["uz"]
     plan = planned_dates(posts, site, today)
+    items = []
     for p in sorted(posts, key=lambda x: x["number"]):
         if p["published"]:
-            status = f"chiqqan: {uz_date(p['date'])}"
+            status = f"chiqqan: {uz_date(p['date'], 'uz', T)}"
         elif p["slug"] in plan:
-            status = f"rejada: {uz_date(plan[p['slug']])}"
+            status = f"rejada: {uz_date(plan[p['slug']], 'uz', T)}"
         else:
             status = "navbatda"
         label = f"№ {p['number']:02d}" if p["number"] else "qo‘shimcha"
         items.append(f'<a class="card" href="../assets/cards/{p["slug"]}.jpg" target="_blank"><img src="../assets/cards/{p["slug"]}.jpg" alt="" loading="lazy" width="1200" height="1200">'
                      f'<div class="card-body"><small>{label} · {status}</small><h3>{html.escape(p["title"])}</h3></div></a>')
     gal = render(tpl("gallery.html"), items="\n".join(items), count=len(posts))
-    write("kartalar/index.html", page(layout, site, "../", "kartalar/", f"Rasmlar — {site['name']}",
+    write("kartalar/index.html", page(layout, site, "uz", T, 1, "kartalar/", f"Rasmlar — {site['name']}",
                                       "Maqolalar uchun tayyorlangan rasmlar", "assets/img/og.jpg", gal,
-                                      extra_head='<meta name="robots" content="noindex, nofollow">'))
+                                      extra_head='<meta name="robots" content="noindex, nofollow">', langs=["uz"]))
 
-    # sitemap va robots
-    urls = [f"{base}/", f"{base}/maqolalar/"] + [f"{base}/maqolalar/{p['slug']}/" for p in visible]
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     sm += "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n"
     write("sitemap.xml", sm)
-    write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")
-    print(f"Sayt qurildi: {len(visible)} ta maqola" + (" (hammasi, --all)" if all_posts else ""))
+    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /kartalar/\nSitemap: {base}/sitemap.xml\n")
+    print(f"Sayt qurildi: {len(visible)} ta maqola × {len(LANGS)} til" + (" (hammasi, --all)" if all_posts else ""))
 
 
 if __name__ == "__main__":

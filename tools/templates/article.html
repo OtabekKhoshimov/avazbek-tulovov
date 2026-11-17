@@ -1,30 +1,30 @@
     <article class="article">
       <header class="article-head">
         <div class="wrap-narrow">
-          <p class="eyebrow"><a href="../">Maqolalar</a> · {{meta}}</p>
+          <p class="eyebrow"><a href="../">{{t_nav_articles}}</a> · {{meta}}</p>
           <h1>{{title}}</h1>
           <p class="article-quote">«{{quote}}»</p>
         </div>
       </header>
       <div class="wrap-narrow">
         <figure class="article-figure">
-          <img src="../../assets/cards/{{slug}}.jpg" alt="{{title}}" width="1200" height="1200">
+          <img src="{{root}}assets/cards/{{slug}}.jpg" alt="{{title}}" width="1200" height="1200">
         </figure>
+        {{notice}}
         <div class="article-body">
 {{body}}
         </div>
-        <p class="tags">{{tags}}</p>
         <div class="share">
-          <span>Ulashish:</span>
+          <span>{{t_share}}</span>
           <a href="{{tg_share}}" target="_blank" rel="noopener">Telegram</a>
           <a href="{{fb_share}}" target="_blank" rel="noopener">Facebook</a>
-          <button type="button" class="copy-link" data-url="{{url_q}}">Havolani nusxalash</button>
+          <button type="button" class="copy-link" data-url="{{url_q}}">{{t_copy}}</button>
         </div>
         <div class="author-box">
-          <img src="../../assets/img/avatar.jpg" alt="" width="64" height="64">
+          <img src="{{root}}assets/img/avatar.jpg" alt="" width="64" height="64">
           <div>
             <b>{{site_name}}</b>
-            <p>O‘qituvchi, Registon ta’lim loyihasi asoschisi. Yangi maqolalar har kuni <a href="https://t.me/{{channel}}" target="_blank" rel="noopener">@{{channel}}</a> kanalida.</p>
+            <p>{{t_author_role}} {{t_author_note}} <a href="https://t.me/{{channel}}" target="_blank" rel="noopener">@{{channel}}</a>{{t_author_note2}}</p>
           </div>
         </div>
         <nav class="prev-next">{{nav}}</nav>

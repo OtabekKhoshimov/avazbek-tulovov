@@ -1,11 +1,15 @@
 <!doctype html>
-<html lang="uz">
+<html lang="{{html_lang}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Maqolalar — Avazbek Tulovov</title>
   <meta name="description" content="Ta’lim, rahbarlik, tarbiya va Registon tarixi haqida maqolalar.">
   <link rel="canonical" href="https://avazbektulovov.uz/maqolalar/">
+  <link rel="alternate" hreflang="uz" href="https://avazbektulovov.uz/maqolalar/">
+  <link rel="alternate" hreflang="ru" href="https://avazbektulovov.uz/ru/maqolalar/">
+  <link rel="alternate" hreflang="en" href="https://avazbektulovov.uz/en/maqolalar/">
+  <link rel="alternate" hreflang="x-default" href="https://avazbektulovov.uz/maqolalar/">
   <meta property="og:title" content="Maqolalar — Avazbek Tulovov">
   <meta property="og:description" content="Ta’lim, rahbarlik, tarbiya va Registon tarixi haqida maqolalar.">
   <meta property="og:image" content="https://avazbektulovov.uz/assets/img/og.jpg">
@@ -17,8 +21,8 @@
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/style.css?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap&subset=cyrillic" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css?v=2">
   
 </head>
 <body class="">
@@ -32,7 +36,10 @@
         <a href="../#aloqa">Aloqa</a>
         <a class="nav-cta" href="https://t.me/avazbek_tulovov" target="_blank" rel="noopener">Telegram kanal</a>
       </nav>
-      <button class="menu-btn" id="menuBtn" type="button" aria-label="Menyu" aria-expanded="false"><span></span><span></span></button>
+      <div class="header-tools">
+        <nav class="lang-switch" aria-label="Language"><a href="../maqolalar/" class="active">UZ</a><a href="../ru/maqolalar/">RU</a><a href="../en/maqolalar/">EN</a></nav>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
+      </div>
     </div>
   </header>
 
@@ -47,7 +54,7 @@
     <section class="section section-tight">
       <div class="wrap">
         <div class="cards">
-          <a class="card" href="../maqolalar/bugungi-registon-qayerdan-boshlangan/">
+          <a class="card" href="bugungi-registon-qayerdan-boshlangan/">
             <img src="../assets/cards/bugungi-registon-qayerdan-boshlangan-sm.jpg" alt="" width="600" height="600" loading="lazy">
             <div class="card-body">
               <small>№ 01 · 17-noyabr, 2026</small>
@@ -56,7 +63,7 @@
             </div>
           </a>
 
-          <a class="card" href="../maqolalar/uch-oydan-keyin-korasiz/">
+          <a class="card" href="uch-oydan-keyin-korasiz/">
             <img src="../assets/cards/uch-oydan-keyin-korasiz-sm.jpg" alt="" width="600" height="600" loading="lazy">
             <div class="card-body">
               <small>№ 02 · 16-noyabr, 2026</small>
@@ -65,7 +72,7 @@
             </div>
           </a>
 
-          <a class="card" href="../maqolalar/moljalimiz-nima/">
+          <a class="card" href="moljalimiz-nima/">
             <img src="../assets/cards/moljalimiz-nima-sm.jpg" alt="" width="600" height="600" loading="lazy">
             <div class="card-body">
               <small>15-noyabr, 2026</small>
@@ -95,6 +102,7 @@
       <p class="copy muted small">© 2026 Avazbek Tulovov. Barcha huquqlar himoyalangan.</p>
     </div>
   </footer>
-  <script src="../assets/script.js?v=1" defer></script>
+  <script>window.T_COPIED="Nusxalandi ✓";</script>
+  <script src="../assets/script.js?v=2" defer></script>
 </body>
 </html>

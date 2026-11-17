@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="uz">
+<html lang="{{html_lang}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rasmlar — Avazbek Tulovov</title>
   <meta name="description" content="Maqolalar uchun tayyorlangan rasmlar">
   <link rel="canonical" href="https://avazbektulovov.uz/kartalar/">
+  <link rel="alternate" hreflang="uz" href="https://avazbektulovov.uz/kartalar/">
+  <link rel="alternate" hreflang="x-default" href="https://avazbektulovov.uz/kartalar/">
   <meta property="og:title" content="Rasmlar — Avazbek Tulovov">
   <meta property="og:description" content="Maqolalar uchun tayyorlangan rasmlar">
   <meta property="og:image" content="https://avazbektulovov.uz/assets/img/og.jpg">
@@ -17,8 +19,8 @@
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/style.css?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap&subset=cyrillic" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css?v=2">
   <meta name="robots" content="noindex, nofollow">
 </head>
 <body class="">
@@ -32,7 +34,10 @@
         <a href="../#aloqa">Aloqa</a>
         <a class="nav-cta" href="https://t.me/avazbek_tulovov" target="_blank" rel="noopener">Telegram kanal</a>
       </nav>
-      <button class="menu-btn" id="menuBtn" type="button" aria-label="Menyu" aria-expanded="false"><span></span><span></span></button>
+      <div class="header-tools">
+        <nav class="lang-switch" aria-label="Language"><a href="../kartalar/" class="active">UZ</a></nav>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
+      </div>
     </div>
   </header>
 
@@ -41,7 +46,7 @@
       <div class="wrap">
         <p class="eyebrow">Ko‘rib chiqish uchun</p>
         <h1>Maqolalar uchun tayyorlangan rasmlar</h1>
-        <p class="lead">Jami 21 ta. Har biri o‘z kuni Telegram kanalga maqola bilan birga chiqadi. Bu sahifa saytda ko‘rinmaydi, faqat havola orqali ochiladi.</p>
+        <p class="lead">Jami 21 ta. Har biri tasdiqlangach Telegram kanalga maqola bilan birga chiqadi. Bu sahifa saytda ko‘rinmaydi, faqat havola orqali ochiladi.</p>
       </div>
     </section>
     <section class="section section-tight">
@@ -89,6 +94,7 @@
       <p class="copy muted small">© 2026 Avazbek Tulovov. Barcha huquqlar himoyalangan.</p>
     </div>
   </footer>
-  <script src="../assets/script.js?v=1" defer></script>
+  <script>window.T_COPIED="Nusxalandi ✓";</script>
+  <script src="../assets/script.js?v=2" defer></script>
 </body>
 </html>
