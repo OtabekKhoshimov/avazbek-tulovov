@@ -9,9 +9,10 @@
             <a class="btn btn-ghost" href="https://t.me/{{channel}}" target="_blank" rel="noopener">{{t_hero_subscribe}}</a>
           </div>
           <dl class="stats">
-            <div><dt>2013</dt><dd>{{t_stat1}}</dd></div>
+            <div><dt>{{t_stat1_n}}</dt><dd>{{t_stat1}}</dd></div>
             <div><dt>{{t_stat2_n}}</dt><dd>{{t_stat2}}</dd></div>
-            <div><dt>2023</dt><dd>{{t_stat3}}</dd></div>
+            <div><dt>{{t_stat3_n}}</dt><dd>{{t_stat3}}</dd></div>
+            <div><dt>{{t_stat4_n}}</dt><dd>{{t_stat4}}</dd></div>
           </dl>
         </div>
         <aside class="hero-card">
@@ -40,7 +41,24 @@
       </div>
     </section>
 
-    <section class="section section-alt" id="yol">
+    <section class="section section-alt" id="ekotizim">
+      <div class="wrap">
+        <p class="eyebrow">{{t_eco_eyebrow}}</p>
+        <h2>{{t_eco_title}}</h2>
+        <p class="lead narrow">{{t_eco_lead}}</p>
+        <div class="projects">
+{{projects}}
+        </div>
+        <div class="eco-extra">
+          <h3>{{t_eco_extra_title}}</h3>
+          <ul class="values-list">
+{{eco_extra}}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="yol">
       <div class="wrap">
         <p class="eyebrow">{{t_path_eyebrow}}</p>
         <h2>{{t_path_title}}</h2>

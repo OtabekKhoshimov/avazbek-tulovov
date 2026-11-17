@@ -290,11 +290,14 @@ def build_site(all_posts: bool = False) -> None:
         values = "\n".join(f'            <li><b>{html.escape(a)}</b><span>{html.escape(b)}</span></li>' for a, b in T["values"])
         timeline = "\n".join(f'          <li><span class="tl-year">{html.escape(y)}</span><div><b>{html.escape(t)}</b><p>{html.escape(x)}</p></div></li>'
                               for y, t, x in T["timeline"])
+        projects = "\n".join(f'          <div class="project"><span class="pj-year">{html.escape(y) or "&nbsp;"}</span><b>{html.escape(t)}</b><p>{html.escape(x)}</p></div>'
+                              for y, t, x in T["projects"])
+        eco_extra = "\n".join(f'            <li><b>{html.escape(a)}</b><span>{html.escape(b)}</span></li>' for a, b in T["eco_extra"])
         latest = "\n".join(card_html(p, lang, T, "../" * d0, f"maqolalar/{p['slug']}/") for p in visible[:6])
         home = render(tpl("home.html"), root="../" * d0, channel=site["telegram_channel"], contact=site["telegram_contact"],
                       facebook_btn=(f'<a class="btn btn-outline" href="{html.escape(fb)}" target="_blank" rel="noopener">Facebook</a>' if fb else ""),
                       latest=latest or f'<p class="muted">{T["articles_soon"]}</p>', count=len(visible),
-                      values=values, timeline=timeline, **tvars(T))
+                      values=values, timeline=timeline, projects=projects, eco_extra=eco_extra, **tvars(T))
         write(f"{pre}index.html", page(layout, site, lang, T, d0, "", T["site_title"], T["site_description"],
                                        "assets/img/og.jpg", home, body_class="home"))
         urls.append(f"{base}/{pre}")
