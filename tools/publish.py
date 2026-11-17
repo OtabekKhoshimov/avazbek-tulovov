@@ -278,8 +278,8 @@ def main() -> None:
     # 1) Karta rasmi (yo'q bo'lsa yasaladi)
     card = os.path.join(ROOT, "assets", "cards", post["slug"] + ".jpg")
     if not os.path.exists(card):
-        from cards import make_card, make_og
-        make_card(post, site, card)
+        from cards import make_card_auto, make_og
+        make_card_auto(post, site, card)
         og = os.path.join(ROOT, "assets", "img", "og.jpg")
         if not os.path.exists(og):
             make_og(site, og)

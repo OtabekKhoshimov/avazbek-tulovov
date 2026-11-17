@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 import sys
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONTS = os.path.join(ROOT, "tools", "fonts")
@@ -170,6 +170,77 @@ def make_card(post: dict, site: dict, out_path: str) -> None:
     rgb.resize((600, 600), Image.LANCZOS).save(out_path[:-4] + "-sm.jpg", "JPEG", quality=84, optimize=True)
 
 
+def cover(photo_path: str, w: int, h: int) -> Image.Image:
+    """Rasmni kesmasdan cho'zmasdan, to'liq qoplaydigan qilib markazdan qirqadi."""
+    im = Image.open(photo_path).convert("RGB")
+    im = ImageOps.exif_transpose(im)
+    r = max(w / im.width, h / im.height)
+    im = im.resize((max(w, int(im.width * r + 0.5)), max(h, int(im.height * r + 0.5))), Image.LANCZOS)
+    x = (im.width - w) // 2
+    y = max(0, (im.height - h) // 2)
+    return im.crop((x, y, x + w, y + h))
+
+
+def make_photo_card(post: dict, site: dict, photo_path: str, out_path: str) -> None:
+    """Maqolaga mos foto: rasm tepada (yuzlarga matn tushmaydi), pastda to'q ko'k panelda sarlavha va iqtibos.
+    Ortiqcha yozuvlar (ism, lavozim, raqam, manzillar) yo'q — ustozning xohishi."""
+    width = W - 2 * M
+    tf, tlines, tsize = fit(post["title"], "PlayfairDisplay.ttf", 700, 70, 44, width, 3)
+    qf, qlines, qsize = fit("«" + post["quote"] + "»", "PlayfairDisplay-Italic.ttf", 400, 34, 26, width, 4)
+    t_lh, q_lh = int(tsize * 1.1), int(qsize * 1.36)
+    text_h = len(tlines) * t_lh + 22 + 5 + 26 + len(qlines) * q_lh
+    panel_h = text_h + 2 * 64            # panel balandligi matnga qarab
+    photo_h = H - panel_h
+    photo_h = max(photo_h, 560)          # rasmga kamida yarim karta
+    panel_h = H - photo_h
+
+    img = Image.new("RGBA", (W, H), NAVY_DARK + (255,))
+    ph = cover(photo_path, W, photo_h + 80).convert("RGBA")   # 80 px panel ostiga kirib, yumshoq o'tadi
+    img.alpha_composite(ph, (0, 0))
+    # rasm pastki qismi panelga yumshoq eriydi
+    fade = Image.new("RGBA", (W, 160), (0, 0, 0, 0))
+    fp = fade.load()
+    for y in range(160):
+        a = int(255 * (y / 159) ** 1.4)
+        for x in range(W):
+            fp[x, y] = NAVY_DARK + (a,)
+    img.alpha_composite(fade, (0, photo_h + 80 - 160))
+    d = ImageDraw.Draw(img)
+
+    y = photo_h + (panel_h - text_h) // 2
+    for ln in tlines:
+        d.text((M, y), ln, font=tf, fill=(255, 255, 255))
+        y += t_lh
+    y += 22
+    d.rounded_rectangle((M, y, M + 72, y + 5), radius=3, fill=TEAL)
+    y += 31
+    for ln in qlines:
+        d.text((M, y), ln, font=qf, fill=CREAM)
+        y += q_lh
+
+    rgb = img.convert("RGB")
+    rgb.save(out_path, "JPEG", quality=90, optimize=True, progressive=True)
+    rgb.resize((600, 600), Image.LANCZOS).save(out_path[:-4] + "-sm.jpg", "JPEG", quality=84, optimize=True)
+
+
+def photo_for(post: dict):
+    """assets/photos/<slug>.jpg (yoki .jpeg/.png) bo'lsa — shu maqolaning fotosi."""
+    for ext in ("jpg", "jpeg", "png"):
+        p = os.path.join(ROOT, "assets", "photos", post["slug"] + "." + ext)
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def make_card_auto(post: dict, site: dict, out_path: str) -> None:
+    """Foto bo'lsa foto-karta, bo'lmasa matnli karta."""
+    ph = photo_for(post)
+    if ph:
+        make_photo_card(post, site, ph, out_path)
+    else:
+        make_card(post, site, out_path)
+
+
 def make_og(site: dict, out_path: str) -> None:
     """Bosh sahifa uchun 1200×630 ulashish rasmi."""
     global W, H
@@ -205,9 +276,11 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(ROOT, "assets", "cards"), exist_ok=True)
     for p in load_posts():
         out = os.path.join(ROOT, "assets", "cards", p["slug"] + ".jpg")
-        if force or not os.path.exists(out):
-            make_card(p, site, out)
-            print("karta:", p["slug"])
+        ph = photo_for(p)
+        stale = ph and os.path.exists(out) and os.path.getmtime(ph) > os.path.getmtime(out)
+        if force or stale or not os.path.exists(out):
+            make_card_auto(p, site, out)
+            print("karta:", p["slug"], "(foto)" if ph else "")
     og = os.path.join(ROOT, "assets", "img", "og.jpg")
     if force or not os.path.exists(og):
         make_og(site, og)
