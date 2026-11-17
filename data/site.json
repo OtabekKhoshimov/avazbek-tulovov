@@ -11,5 +11,6 @@
   "timezone": "Asia/Tashkent",
   "start_date": "2026-11-17",
   "paused": false,
-  "series": "Muvaffaqiyat tasodif emas"
+  "series": "Muvaffaqiyat tasodif emas",
+  "telegram_hashtags": false
 }

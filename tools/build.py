@@ -63,7 +63,8 @@ def parse_post(path: str) -> dict:
     if not title:
         sys.exit(f"{path}: birinchi qator '# Sarlavha' bo'lishi kerak")
     # birinchi mazmunli jumla — qisqa tavsif uchun
-    excerpt = " ".join(l for l in body if l)[:200].rsplit(" ", 1)[0] + "…"
+    excerpt = " ".join(BOLD.sub(r"\1", l) for l in body if l)[:200].rsplit(" ", 1)[0] + "…"
+    quote = BOLD.sub(r"\1", quote)
     return {"number": number, "slug": slug, "title": title, "quote": quote or title,
             "body": body, "tags": tags, "excerpt": excerpt, "file": path}
 
@@ -75,10 +76,29 @@ def load_posts() -> list:
 
 # ---------- matn ko'rinishlari ----------
 
+BOLD = re.compile(r"\*\*(.+?)\*\*")
+
+
+def rich(line: str) -> str:
+    """**qalin** belgilarini Telegram/sayt HTML'iga aylantiradi (qolgani escape qilinadi)."""
+    out, pos = [], 0
+    for m in BOLD.finditer(line):
+        out.append(html.escape(line[pos:m.start()]))
+        out.append("<b>" + html.escape(m.group(1)) + "</b>")
+        pos = m.end()
+    out.append(html.escape(line[pos:]))
+    return "".join(out)
+
+
+def plain(line: str) -> str:
+    return BOLD.sub(r"\1", line)
+
+
 def telegram_text(post: dict, site: dict) -> str:
-    body = "\n".join(post["body"])
-    parts = [f"<b>{html.escape(post['title'].upper())}</b>", html.escape(body)]
-    if post["tags"]:
+    body = "\n".join(rich(l) for l in post["body"])
+    body = re.sub(r"\n{3,}", "\n\n", body)
+    parts = [f"<b>{html.escape(post['title'].upper())}</b>", body]
+    if post["tags"] and site.get("telegram_hashtags", False):
         parts.append(" ".join(post["tags"]))
     if site.get("signature"):
         parts.append(html.escape(site["signature"]))
@@ -86,8 +106,9 @@ def telegram_text(post: dict, site: dict) -> str:
 
 
 def plain_text(post: dict, site: dict) -> str:
-    parts = [post["title"].upper(), "\n".join(post["body"])]
-    if post["tags"]:
+    body = re.sub(r"\n{3,}", "\n\n", "\n".join(plain(l) for l in post["body"]))
+    parts = [post["title"].upper(), body]
+    if post["tags"] and site.get("telegram_hashtags", False):
         parts.append(" ".join(post["tags"]))
     return "\n\n".join(parts)
 
@@ -112,15 +133,20 @@ def uz_date(iso: str) -> str:
 
 
 def body_html(post: dict) -> str:
+    """Bo'sh qator — yangi abzats; abzats ichidagi qatorlar <br> bilan ajratiladi."""
+    paras, cur = [], []
+    for ln in post["body"] + [""]:
+        if ln:
+            cur.append(ln)
+        elif cur:
+            paras.append(cur)
+            cur = []
     out = []
-    for ln in post["body"]:
-        if not ln:
-            continue
-        t = html.escape(ln)
-        if ln.startswith("«") and ln.endswith("»"):
-            out.append(f"<p class=\"said\">{t}</p>")
+    for lines in paras:
+        if len(lines) == 1 and lines[0].startswith("«") and lines[0].endswith("»"):
+            out.append(f"<p class=\"said\">{rich(lines[0])}</p>")
         else:
-            out.append(f"<p>{t}</p>")
+            out.append("<p>" + "<br>\n".join(rich(l) for l in lines) + "</p>")
     return "\n".join(out)
 
 
