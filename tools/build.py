@@ -290,8 +290,8 @@ def build_site(all_posts: bool = False) -> None:
         values = "\n".join(f'            <li><b>{html.escape(a)}</b><span>{html.escape(b)}</span></li>' for a, b in T["values"])
         timeline = "\n".join(f'          <li><span class="tl-year">{html.escape(y)}</span><div><b>{html.escape(t)}</b><p>{html.escape(x)}</p></div></li>'
                               for y, t, x in T["timeline"])
-        projects = "\n".join(f'          <div class="project"><span class="pj-year">{html.escape(y) or "&nbsp;"}</span><b>{html.escape(t)}</b><p>{html.escape(x)}</p></div>'
-                              for y, t, x in T["projects"])
+        projects = "\n".join('          <div class="project">' + (f'<span class="pj-year">{html.escape(y)}</span>' if y else '<span class="pj-year pj-none">·</span>')
+                              + f'<b>{html.escape(t)}</b><p>{html.escape(x)}</p></div>' for y, t, x in T["projects"])
         eco_extra = "\n".join(f'            <li><b>{html.escape(a)}</b><span>{html.escape(b)}</span></li>' for a, b in T["eco_extra"])
         latest = "\n".join(card_html(p, lang, T, "../" * d0, f"maqolalar/{p['slug']}/") for p in visible[:6])
         home = render(tpl("home.html"), root="../" * d0, channel=site["telegram_channel"], contact=site["telegram_contact"],

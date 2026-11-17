@@ -184,6 +184,7 @@ p { margin: 0 0 1em; }
 .projects { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0 28px; }
 .project { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 20px 14px; }
 .pj-year { display: inline-block; font-size: .74rem; font-weight: 700; letter-spacing: .08em; color: var(--teal-dark); background: rgba(46,170,164,.1); border-radius: 999px; padding: .2em .7em; margin-bottom: 10px; min-height: 1.6em; }
+.pj-none { visibility: hidden; }
 .project b { display: block; color: var(--ink); font-family: var(--serif); font-size: 1.05rem; line-height: 1.25; margin-bottom: 6px; }
 .project p { font-size: .9rem; color: var(--text); margin: 0; }
 .eco-extra { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 28px 8px; }
