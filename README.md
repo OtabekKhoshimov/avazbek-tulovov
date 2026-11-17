@@ -3,7 +3,13 @@
 Statik sayt (GitHub Pages) + har kuni bitta maqolani **Telegram kanalga** (va xohlasangiz **Facebook sahifaga**)
 brendli rasm bilan avtomatik joylaydigan tizim.
 
-## Qanday ishlaydi
+## Tasdiqlash boti (asosiy rejim)
+
+Serverda (`/opt/avazbek-nashr`, xizmat `avazbek-nashr`) `tools/nashr_bot.py` ishlaydi. Har kuni 18:00 da nazorat guruhiga ertangi maqola namunasi tugmalar bilan keladi:
+«✅ Hozir chiqsin», «🕘 Ertaga 09:00 da», «✏️ Hali emas». Faqat tasdiqlangan maqola kanalga chiqadi.
+Guruhda: `/namuna N`, `/holat`, `/pauza`, `/davom`. Maqolaga rasm biriktirish: `assets/photos/<slug>.jpg`.
+
+## Qanday ishlaydi (zaxira: GitHub Actions, qo'lda)
 
 1. Maqolalar `posts/` papkasida oddiy matn fayllar: `NN-nomi.txt` (NN — navbat raqami).
 2. Har kuni **09:00** (Toshkent) GitHub Actions `tools/publish.py` ni ishga tushiradi:

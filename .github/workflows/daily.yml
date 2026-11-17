@@ -8,10 +8,9 @@
 #   secret   FB_PAGE_TOKEN       — ixtiyoriy, Facebook sahifa tokeni
 name: Kunlik nashr
 
+# Avtomatik jadval o'chirilgan: nashrni serverdagi tasdiqlash boti boshqaradi (tools/nashr_bot.py).
+# Bu ish oqimi faqat qo'lda (zaxira) ishga tushiriladi.
 on:
-  schedule:
-    - cron: "0 4 * * *"      # 09:00 Toshkent vaqti (UTC+5): kanalga nashr. GitHub ba'zan 10–30 daqiqa kechiktiradi.
-    - cron: "0 13 * * *"     # 18:00 Toshkent: ertangi postning namunasi nazorat guruhiga
   workflow_dispatch:
     inputs:
       slug:
@@ -66,6 +65,6 @@ jobs:
           CHECK: ${{ inputs.check && '1' || '' }}
           PREVIEW_CHAT_ID: ${{ inputs.preview_chat_id }}
           REVIEW_GROUP_ID: ${{ vars.REVIEW_GROUP_ID }}
-          REVIEW_NEXT: ${{ (inputs.review_next || github.event.schedule == '0 13 * * *') && '1' || '' }}
+          REVIEW_NEXT: ${{ inputs.review_next && '1' || '' }}
           PUSH: "1"
         run: python3 tools/publish.py

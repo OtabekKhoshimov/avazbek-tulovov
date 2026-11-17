@@ -1,0 +1,20 @@
+[Unit]
+Description=Avazbek Tulovov - nashr nazorati boti (tasdiqlash bilan)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=botrunner
+WorkingDirectory=/opt/avazbek-nashr/repo
+EnvironmentFile=/opt/avazbek-nashr/.env
+ExecStart=/opt/avazbek-nashr/.venv/bin/python -u /opt/avazbek-nashr/repo/tools/nashr_bot.py
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/avazbek-nashr
+
+[Install]
+WantedBy=multi-user.target
