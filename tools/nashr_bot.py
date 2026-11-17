@@ -52,7 +52,7 @@ PREVIEW_HOUR = int(os.environ.get("PREVIEW_HOUR", "18"))
 PUBLISH_HOUR = int(os.environ.get("PUBLISH_HOUR", "9"))
 STATE_FILE = os.path.join(BASE, "state.json")
 PYTHON = sys.executable
-GIT_ENV = {**os.environ, "GIT_SSH_COMMAND": f"ssh -i {BASE}/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"}
+GIT_ENV = {**os.environ, "HOME": BASE, "GIT_SSH_COMMAND": f"ssh -i {BASE}/.ssh/id_ed25519 -o UserKnownHostsFile={BASE}/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"}
 
 sys.path.insert(0, HERE)
 from build import load_posts, load_published, load_site, telegram_text  # noqa: E402

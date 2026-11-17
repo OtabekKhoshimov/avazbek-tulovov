@@ -7,6 +7,7 @@ Wants=network-online.target
 User=botrunner
 WorkingDirectory=/opt/avazbek-nashr/repo
 EnvironmentFile=/opt/avazbek-nashr/.env
+Environment=HOME=/opt/avazbek-nashr
 ExecStart=/opt/avazbek-nashr/.venv/bin/python -u /opt/avazbek-nashr/repo/tools/nashr_bot.py
 Restart=always
 RestartSec=10
