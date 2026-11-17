@@ -33,8 +33,8 @@ except ImportError:  # juda eski Python
     ZoneInfo = None
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build import (ROOT, build_site, load_posts, load_published, load_site,  # noqa: E402
-                   plain_text, save_published, telegram_text)
+from build import (ROOT, build_site, card_url, file_version, load_posts,  # noqa: E402
+                   load_published, load_site, plain_text, save_published, telegram_text)
 
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
@@ -73,15 +73,26 @@ def commit_push(message: str) -> None:
     log(f"  git: '{message}' push qilindi")
 
 
-def wait_until_live(url: str, timeout: int = 720) -> bool:
-    """GitHub Pages yangi faylni chiqarguncha kutadi (odatda 1–3 daqiqa)."""
+def wait_until_live(url: str, timeout: int = 720, local_path: str = "") -> bool:
+    """GitHub Pages faylni chiqarguncha kutadi (odatda 1–3 daqiqa).
+    local_path berilsa — jonli fayl lokal fayl bilan AYNAN bir xil bo'lguncha kutadi (eski nusxa emas)."""
+    import hashlib
+    want = None
+    if local_path and os.path.exists(local_path):
+        with open(local_path, "rb") as f:
+            want = hashlib.sha1(f.read()).hexdigest()
     deadline = time.time() + timeout
+    sep = "&" if "?" in url else "?"
     while time.time() < deadline:
         try:
-            req = urllib.request.Request(f"{url}?v={int(time.time())}", headers={"User-Agent": "nashr-bot"})
-            with urllib.request.urlopen(req, timeout=20) as r:
+            req = urllib.request.Request(f"{url}{sep}t={int(time.time())}", headers={"User-Agent": "nashr-bot"})
+            with urllib.request.urlopen(req, timeout=30) as r:
                 if r.status == 200:
-                    return True
+                    if want is None or hashlib.sha1(r.read()).hexdigest() == want:
+                        return True
+                    log(f"  {url} hali eski nusxa, 20 soniya kutamiz…")
+                    time.sleep(20)
+                    continue
         except (urllib.error.URLError, OSError):
             pass
         log(f"  {url} hali ochilmadi, 20 soniya kutamiz…")
@@ -141,9 +152,9 @@ def review_next() -> None:
         notify_group("📭 Navbat bo'sh: ertaga chiqadigan maqola yo'q. posts/ papkasiga yangi maqola qo'shing.")
         return
     base = site["base_url"].rstrip("/")
-    image_url = f"{base}/assets/cards/{post['slug']}.jpg"
+    image_url = card_url(site, post["slug"])
     article_url = f"{base}/maqolalar/{post['slug']}/"
-    if not wait_until_live(image_url, timeout=90):
+    if not wait_until_live(image_url, timeout=600, local_path=os.path.join(ROOT, "assets", "cards", post["slug"] + ".jpg")):
         notify_group(f"⚠️ Ertangi post rasmi saytda topilmadi: {image_url}")
         sys.exit(1)
     header = f"🕘 Ertaga 09:00 da kanalga chiqadi · № {post['number']:02d}. Tuzatish bo'lsa shu yerga yozing."
@@ -240,9 +251,9 @@ def preview(chat_id: str) -> None:
     if not post:
         sys.exit("Navbatda maqola yo'q")
     base = site["base_url"].rstrip("/")
-    image_url = f"{base}/assets/cards/{post['slug']}.jpg"
+    image_url = card_url(site, post["slug"])
     article_url = f"{base}/maqolalar/{post['slug']}/"
-    if not wait_until_live(image_url, timeout=60):
+    if not wait_until_live(image_url, timeout=600, local_path=os.path.join(ROOT, "assets", "cards", post["slug"] + ".jpg")):
         sys.exit(f"Rasm hali saytda yo'q: {image_url}")
     mid = send_telegram(post, site, image_url, article_url, chat_id=chat_id)
     log(f"✅ Namuna yuborildi (chat {chat_id}, xabar #{mid}): № {post['number']:02d} «{post['title']}»")
@@ -299,7 +310,7 @@ def main() -> None:
         commit_push(f"Yangi maqola: {post['title']}")
 
     base = site["base_url"].rstrip("/")
-    image_url = f"{base}/assets/cards/{post['slug']}.jpg"
+    image_url = card_url(site, post["slug"])
     article_url = f"{base}/maqolalar/{post['slug']}/"
 
     if DRY:
@@ -309,7 +320,7 @@ def main() -> None:
         return
 
     if PUSH:
-        if not wait_until_live(image_url) or not wait_until_live(article_url):
+        if not wait_until_live(image_url, local_path=card) or not wait_until_live(article_url):
             log("  Sayt o'z vaqtida ochilmadi; keyingi ishga tushishda qayta uriniladi")
             sys.exit(1)
 

@@ -20,6 +20,21 @@ MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul",
           "avgust", "sentabr", "oktabr", "noyabr", "dekabr"]
 
 
+def file_version(rel: str) -> str:
+    """Fayl mazmunining qisqa xeshi — manzilga ?v= qo'shib, Telegram/brauzer keshini chetlab o'tamiz."""
+    import hashlib
+    path = os.path.join(ROOT, rel)
+    if not os.path.exists(path):
+        return "0"
+    with open(path, "rb") as f:
+        return hashlib.sha1(f.read()).hexdigest()[:10]
+
+
+def card_url(site: dict, slug: str) -> str:
+    base = site["base_url"].rstrip("/")
+    return f"{base}/assets/cards/{slug}.jpg?v={file_version(f'assets/cards/{slug}.jpg')}"
+
+
 def load_site() -> dict:
     with open(os.path.join(ROOT, "data", "site.json"), encoding="utf-8") as f:
         return json.load(f)

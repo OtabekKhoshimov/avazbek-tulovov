@@ -155,12 +155,19 @@ def is_published(slug: str) -> bool:
     return bool(e and e.get("telegram"))
 
 
-def wait_live(url: str, timeout: int = 600) -> bool:
+def wait_live(url: str, timeout: int = 600, local_path: str = "") -> bool:
+    """Fayl saytda chiqquncha; local_path berilsa — aynan shu nusxa chiqquncha kutadi."""
+    import hashlib
+    want = None
+    if local_path and os.path.exists(local_path):
+        with open(local_path, "rb") as f:
+            want = hashlib.sha1(f.read()).hexdigest()
+    sep = "&" if "?" in url else "?"
     end = time.time() + timeout
     while time.time() < end:
         try:
-            with urllib.request.urlopen(urllib.request.Request(f"{url}?v={int(time.time())}", headers={"User-Agent": "nashr-bot"}), timeout=20) as r:
-                if r.status == 200:
+            with urllib.request.urlopen(urllib.request.Request(f"{url}{sep}t={int(time.time())}", headers={"User-Agent": "nashr-bot"}), timeout=30) as r:
+                if r.status == 200 and (want is None or hashlib.sha1(r.read()).hexdigest() == want):
                     return True
         except Exception:  # noqa: BLE001
             pass
@@ -170,8 +177,6 @@ def wait_live(url: str, timeout: int = 600) -> bool:
 
 def ensure_card_live(post: dict, site: dict) -> str:
     """Karta repo'da va saytda bo'lishini ta'minlaydi; rasm manzilini qaytaradi."""
-    base = site["base_url"].rstrip("/")
-    url = f"{base}/assets/cards/{post['slug']}.jpg"
     card = os.path.join(REPO, "assets", "cards", post["slug"] + ".jpg")
     photo_new = any(os.path.exists(os.path.join(REPO, "assets", "photos", post["slug"] + "." + e)) and
                     (not os.path.exists(card) or os.path.getmtime(os.path.join(REPO, "assets", "photos", post["slug"] + "." + e)) > os.path.getmtime(card))
@@ -181,7 +186,9 @@ def ensure_card_live(post: dict, site: dict) -> str:
         run(["git", "add", "-A"])
         run(["git", "commit", "-q", "-m", f"Karta: {post['title']}"])
         run(["git", "push", "-q", "origin", "main"])
-    wait_live(url, 600)
+    url = B.card_url(site, post["slug"])
+    if not wait_live(url, 600, local_path=card):
+        say(f"⚠️ Rasm saytda hali yangilanmadi: {url}")
     return url
 
 
