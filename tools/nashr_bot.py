@@ -242,10 +242,11 @@ def refresh_image(key: str) -> None:
         article_url = f"{site['base_url'].rstrip('/')}/maqolalar/{post['slug']}/"
         entry = load_published().get(post["slug"])
         if entry and entry.get("telegram"):
+            kb = {"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]} if site.get("telegram_button", True) else {"inline_keyboard": []}
             res = tg("editMessageText", chat_id=CHAT_ID, message_id=entry["telegram"],
                      text=telegram_text(post, site), parse_mode="HTML",
                      link_preview_options={"url": image_url, "prefer_large_media": True, "show_above_text": True},
-                     reply_markup={"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]})
+                     reply_markup=kb)
             if res:
                 say(f"🖼 № {post['number']:02d} kanaldagi rasmi yangilandi: https://t.me/{CHAT_ID.lstrip('@')}/{entry['telegram']}")
             else:
@@ -388,6 +389,14 @@ def main() -> None:
         return
     if len(sys.argv) > 2 and sys.argv[1] == "refresh":
         refresh_image(sys.argv[2])
+        return
+    if len(sys.argv) > 1 and sys.argv[1] == "nobuttons":
+        # bot yuborgan barcha kanal postlaridan inline tugmani olib tashlaydi
+        git_sync()
+        for slug, e in load_published().items():
+            if e.get("telegram"):
+                r = tg("editMessageReplyMarkup", chat_id=CHAT_ID, message_id=e["telegram"], reply_markup={"inline_keyboard": []})
+                log(slug, e["telegram"], "tugma olib tashlandi" if r else "o'zgarmadi (bot xabari emas yoki tugmasi yo'q)")
         return
     if not (TOKEN and CHAT_ID and GROUP):
         sys.exit("TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, REVIEW_GROUP_ID kerak (.env)")

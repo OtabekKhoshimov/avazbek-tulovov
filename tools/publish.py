@@ -119,8 +119,9 @@ def send_telegram(post: dict, site: dict, image_url: str, article_url: str, chat
         "text": text,
         "parse_mode": "HTML",
         "link_preview_options": json.dumps({"url": image_url, "prefer_large_media": True, "show_above_text": True}),
-        "reply_markup": json.dumps({"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]}),
     }
+    if site.get("telegram_button", True):
+        payload["reply_markup"] = json.dumps({"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]})
     res = api_post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", payload)
     if not res.get("ok"):
         raise RuntimeError(f"Telegram: {res}")
