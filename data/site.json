@@ -13,5 +13,6 @@
   "paused": false,
   "series": "Muvaffaqiyat tasodif emas",
   "telegram_hashtags": false,
-  "telegram_button": false
+  "telegram_button": false,
+  "card_style": "raw"
 }

@@ -232,10 +232,25 @@ def photo_for(post: dict):
     return None
 
 
+def make_raw_photo(photo_path: str, out_path: str) -> None:
+    """Dizaynsiz, kesilmagan asl foto (ustozning xohishi): faqat o'lchami cheklanadi va JPEG'ga o'tkaziladi."""
+    im = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
+    if max(im.size) > 1600:
+        r = 1600 / max(im.size)
+        im = im.resize((int(im.width * r + 0.5), int(im.height * r + 0.5)), Image.LANCZOS)
+    im.save(out_path, "JPEG", quality=90, optimize=True, progressive=True)
+    # sayt ro'yxati uchun kvadrat kichik nusxa (markazdan)
+    s = min(im.size)
+    x, y = (im.width - s) // 2, (im.height - s) // 2
+    im.crop((x, y, x + s, y + s)).resize((600, 600), Image.LANCZOS).save(out_path[:-4] + "-sm.jpg", "JPEG", quality=84, optimize=True)
+
+
 def make_card_auto(post: dict, site: dict, out_path: str) -> None:
-    """Foto bo'lsa foto-karta, bo'lmasa matnli karta."""
+    """Foto bo'lsa: card_style='raw' — fotoning o'zi; aks holda foto-karta. Foto bo'lmasa — matnli karta."""
     ph = photo_for(post)
-    if ph:
+    if ph and site.get("card_style") == "raw":
+        make_raw_photo(ph, out_path)
+    elif ph:
         make_photo_card(post, site, ph, out_path)
     else:
         make_card(post, site, out_path)
