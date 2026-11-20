@@ -118,7 +118,7 @@ def send_telegram(post: dict, site: dict, image_url: str, article_url: str, chat
         "chat_id": chat_id or CHAT_ID,
         "text": text,
         "parse_mode": "HTML",
-        "link_preview_options": json.dumps({"url": image_url, "prefer_large_media": True, "show_above_text": True}),
+        "link_preview_options": json.dumps({"url": image_url, "prefer_large_media": True, "show_above_text": bool(site.get("image_above", True))}),
     }
     if site.get("telegram_button", True):
         payload["reply_markup"] = json.dumps({"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]})

@@ -217,7 +217,7 @@ def send_preview(key: str = "", note: str = "", auto: bool = False):
         if old:
             tg("deleteMessage", chat_id=GROUP, message_id=old)
         msg = tg("sendMessage", chat_id=GROUP, text=header + "\n\n" + telegram_text(post, site), parse_mode="HTML",
-                 link_preview_options={"url": image_url, "prefer_large_media": True, "show_above_text": True},
+                 link_preview_options={"url": image_url, "prefer_large_media": True, "show_above_text": bool(site.get("image_above", True))},
                  reply_markup=kb)
         if msg:
             st = load_state()
@@ -245,7 +245,7 @@ def refresh_image(key: str) -> None:
             kb = {"inline_keyboard": [[{"text": "Saytda o‘qish →", "url": article_url}]]} if site.get("telegram_button", True) else {"inline_keyboard": []}
             res = tg("editMessageText", chat_id=CHAT_ID, message_id=entry["telegram"],
                      text=telegram_text(post, site), parse_mode="HTML",
-                     link_preview_options={"url": image_url, "prefer_large_media": True, "show_above_text": True},
+                     link_preview_options={"url": image_url, "prefer_large_media": True, "show_above_text": bool(site.get("image_above", True))},
                      reply_markup=kb)
             if res:
                 say(f"🖼 № {post['number']:02d} kanaldagi rasmi yangilandi: https://t.me/{CHAT_ID.lstrip('@')}/{entry['telegram']}")
